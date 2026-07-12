@@ -1,0 +1,126 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLITE ADMIN</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/admin/assets/css/base.css">
+    <link id="theme-style" rel="stylesheet">
+</head>
+<body class="antialiased">
+    <div id="app" v-cloak class="flex min-h-screen">
+
+        <!-- 遮罩层：小屏侧边栏展开时显示，点击可关闭 -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- 侧边栏：桌面端常驻，小屏下默认收起，通过汉堡按钮滑出。
+             z-40 是独占的高层级，避免与页面内容里常见的 z-10（Tailwind 默认工具类）撞车 -->
+        <aside id="admin-sidebar" class="sidebar-mobile w-64 border-r border-custom-black flex flex-col fixed h-full z-40 bg-custom-white">
+            <div class="p-6 lg:p-8 border-b border-custom-black flex items-start justify-between gap-3">
+                <div class="overflow-hidden">
+                    <h1 class="text-xl lg:text-2xl font-black uppercase tracking-tighter text-custom-black truncate">SLITE 管理中心</h1>
+                    <p class="text-[9px] mt-2 text-custom-gray-400 tracking-[0.3em] lg:tracking-[0.6em] truncate">你的每一次心跳，皆有回响。</p>
+                </div>
+                <!-- 小屏关闭按钮 -->
+                <button onclick="closeSidebar()" class="lg:hidden shrink-0 w-8 h-8 flex items-center justify-center border border-custom-black text-sm font-bold" aria-label="关闭菜单">✕</button>
+            </div>
+
+            <nav class="flex-grow overflow-y-auto">
+                <div v-for="item in menuItems" 
+                     :key="item.id" 
+                     @click="currentTab = item.id" 
+                     :class="['menu-item', currentTab === item.id ? 'active' : '']">
+                    {{ item.name }}
+                </div>
+            </nav>
+
+            <div class="p-6 border-t border-custom-black space-y-3 bg-custom-gray-50">
+                <a href="/" 
+                   class="w-full block text-center text-[10px] font-bold btn-secondary">
+                    返回监控页
+                </a>
+                <button @click="handleLogout" 
+                        class="w-full block text-center text-[10px] font-bold btn-danger">
+                    安全退出登录
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主内容区：桌面端 ml-64 让出侧边栏空间，小屏下不需要偏移 -->
+        <div class="flex-grow lg:ml-64 flex flex-col min-w-0">
+
+            <!-- 小屏顶部导航条：汉堡菜单 + 当前页面标题 -->
+            <div class="mobile-topbar lg:hidden">
+                <button onclick="toggleSidebar()" class="hamburger-btn" aria-label="打开菜单">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="text-xs font-black uppercase tracking-widest truncate">{{ getTabTitle() }}</div>
+                <div class="w-9"></div>
+            </div>
+
+            <main class="flex-grow p-4 sm:p-6 lg:p-16 min-w-0">
+                <!-- 桌面端页面标题：小屏已在顶部导航条展示，此处隐藏避免重复 -->
+                <header class="mb-6 lg:mb-12 border-b-2 border-custom-black pb-4 lg:pb-6 hidden lg:flex justify-between items-end">
+                    <div>
+                        <h2 class="text-2xl lg:text-3xl font-black uppercase leading-none text-custom-black">{{ getTabTitle() }}</h2>
+                    </div>
+                </header>
+
+                <div class="admin-content-wrapper">
+                    <component 
+                        :is="currentTab" 
+                        v-bind="allProps" 
+                        @action="handleAction"
+                        @save-basic="handleSaveBasic">
+                    </component>
+                </div>
+            </main>
+        </div>
+    </div>
+
+<script>
+    /* 侧边栏展开/收起，独立于 Vue 实例，避免依赖 admin.js 内部状态 */
+    function toggleSidebar() {
+        var sidebar = document.getElementById('admin-sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.toggle('sidebar-open');
+        if (overlay) overlay.classList.toggle('sidebar-open');
+    }
+    function closeSidebar() {
+        var sidebar = document.getElementById('admin-sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('sidebar-open');
+        if (overlay) overlay.classList.remove('sidebar-open');
+    }
+    /* 小屏下点击导航菜单项后自动收起侧边栏，提升切换体验 */
+    document.addEventListener('click', function (e) {
+        if (window.innerWidth < 1024 && e.target.closest('#admin-sidebar .menu-item')) {
+            closeSidebar();
+        }
+    });
+    /* 屏幕从小屏切换到大屏时，重置侧边栏状态，避免残留 open 类导致样式异常 */
+    window.addEventListener('resize', function () {
+        if (window.innerWidth >= 1024) {
+            closeSidebar();
+        }
+    });
+</script>
+
+<script src="/static/admin/assets/js/theme-switcher.js"></script>
+
+<script src="/static/admin/assets/js/site.js"></script>
+<script src="/static/admin/assets/js/basic.js"></script>
+<script src="/static/admin/assets/js/nodes.js"></script>
+<script src="/static/admin/assets/js/network.js"></script>
+<script src="/static/admin/assets/js/alert.js"></script>
+<script src="/static/admin/assets/js/security.js"></script>
+<script src="/static/admin/assets/js/backup.js"></script>
+<script src="/static/admin/assets/js/logs.js"></script>
+<script src="/static/admin/assets/js/about.js"></script>
+
+<script src="/static/admin/assets/js/admin.js"></script>
+</body>
+</html>

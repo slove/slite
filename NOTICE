@@ -1,0 +1,31 @@
+Slite
+Copyright (c) 2026 Slite Contributors
+
+This product includes software developed at:
+https://github.com/your-username/slite
+
+Third-party dependencies:
+
+Gin
+Copyright (c) 2014 Manu Martinez-Almeida
+https://github.com/gin-gonic/gin
+
+GORM
+Copyright (c) 2013 Jinzhu
+https://gorm.io/
+
+gopsutil
+Copyright (c) 2014, WAKAYAMA Shirou
+https://github.com/shirou/gopsutil
+
+go-ping
+Copyright (c) 2017 Marc-Antoine Ruel
+https://github.com/go-ping/ping
+
+Docker SDK
+Copyright (c) 2013-2024 Docker, Inc.
+https://github.com/docker/docker
+
+snowflake
+Copyright (c) 2016 bwmarrin
+https://github.com/bwmarrin/snowflake

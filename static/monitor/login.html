@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统访问认证 - SLITE</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/monitor/assets/css/base.css">
+    <link id="theme-style" rel="stylesheet">
+    <script src="/static/monitor/assets/js/theme-switcher.js"></script>
+    <style>
+        [v-cloak] { display: none !important; }
+        
+        .bg-pattern {
+            background-image: radial-gradient(currentColor 0.5px, transparent 0.5px);
+            background-size: 10px 10px;
+            opacity: 0.05;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 relative overflow-hidden">
+    <div class="absolute inset-0 bg-pattern -z-10"></div>
+
+    <div id="login-app" v-cloak class="w-full max-w-sm">
+        <div class="border-custom p-8 md:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] relative">
+            <div class="absolute top-0 left-0 w-full h-1.5"></div>
+
+            <div class="mb-10 text-center">
+                <div class="flex justify-center mb-6">
+                    <div class="w-14 h-14 flex items-center justify-center font-black text-3xl italic">
+                        S
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tighter mb-2">访问受限</h2>
+                <p class="text-[10px] uppercase tracking-widest font-bold">受保护的资源 · 请输入访问密钥</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="relative">
+                    <label class="block text-[10px] font-bold mb-2 tracking-widest uppercase">访问密钥</label>
+                    <input 
+                        type="password" 
+                        v-model="loginKey" 
+                        @keyup.enter="handleLogin" 
+                        placeholder="在此输入密钥..." 
+                        class="w-full border-custom p-4 text-sm focus:outline-none text-center font-mono transition-all"
+                        :disabled="isSubmitting"
+                        autofocus
+                    >
+                </div>
+
+                <div v-if="errorMessage" class="p-3 text-[10px] font-bold text-center tracking-tight">
+                    错误: {{ errorMessage }}
+                </div>
+
+                <button 
+                    @click="handleLogin" 
+                    :disabled="isSubmitting || !loginKey"
+                    class="w-full border-custom py-4 text-[12px] font-bold uppercase transition-all tracking-[0.3em] disabled:opacity-30 disabled:cursor-not-allowed group"
+                >
+                    <span v-if="!isSubmitting">验证身份入场 &rarr;</span>
+                    <span v-else class="status-pulse flex items-center justify-center">
+                        正在校验密钥...
+                    </span>
+                </button>
+            </div>
+
+            <div class="mt-10 text-center pt-6">
+                <p class="text-[9px] mb-4 tracking-widest">如果您是管理员，请前往管理后台进行配置</p>
+                <a href="/admin/" class="text-[10px] font-bold border-b-2 pb-0.5 px-2 transition-all">
+                    管理面板
+                </a>
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center text-[9px] uppercase tracking-[0.2em] leading-relaxed">
+            SLITE 监控同步系统<br>
+            <span class="opacity-50">数据层认证已启用 &copy; 2026</span>
+        </footer>
+    </div>
+
+    <script src="/static/monitor/assets/js/login.js"></script>
+</body>
+</html>

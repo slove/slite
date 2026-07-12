@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLITE MONITORING</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://umami.slove.info/slove" data-website-id="308e1c7a-161c-4788-989c-367e7fdf9c2d"></script>
+    
+    <link rel="stylesheet" href="/static/monitor/assets/css/base.css">
+    <link id="theme-style" rel="stylesheet">
+    
+    <script src="/static/monitor/assets/js/theme-switcher.js"></script>
+    
+    <style>
+        /* 仅保留首屏渲染前必须内联的开关样式，避免闪烁；
+           其余所有样式统一维护在 base.css */
+        [v-cloak] {
+            display: none !important;
+        }
+        
+        #app {
+            opacity: 0 !important;
+            transition: opacity 0.5s ease !important;
+        }
+        
+        #app.app-ready {
+            opacity: 1 !important;
+        }
+        
+        .grid-header {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transition: opacity 0.3s ease, visibility 0.3s ease !important;
+        }
+        
+        .app-ready .grid-header {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        .main-content {
+            opacity: 0 !important;
+            transition: opacity 0.5s ease !important;
+        }
+        
+        .app-ready .main-content {
+            opacity: 1 !important;
+        }
+    </style>
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/monitor/assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/monitor/assets/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/monitor/assets/img/favicon-16x16.png">
+    <link rel="manifest" href="/static/monitor/assets/img/site.webmanifest">
+</head>
+<body class="p-4 md:p-6 min-h-screen flex flex-col">
+    <div id="app" v-cloak class="max-w-[1400px] mx-auto flex flex-col flex-grow w-full">
+        
+        <div v-if="siteConfig.view_auth_enabled && !isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="w-full max-w-sm border-custom p-6 sm:p-10 shadow-xl">
+                <div class="mb-8 sm:mb-10 text-center">
+                    <div class="flex justify-center mb-6">
+                        <img v-if="siteConfig.site_logo" :src="siteConfig.site_logo" class="h-12 object-contain">
+                        <div v-else class="w-12 h-12 flex items-center justify-center font-black text-2xl uppercase italic">
+                            {{ (siteConfig.site_name || 'S').charAt(0) }}
+                        </div>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tighter uppercase mb-2">{{ siteConfig.site_name }}</h2>
+                    <p class="text-[10px] uppercase tracking-widest">安全访问 · 身份验证</p>
+                </div>
+                <div class="space-y-6">
+                    <input type="password" 
+                           v-model="loginKey" 
+                           @keyup.enter="handleLogin" 
+                           placeholder="请输入访问密钥" 
+                           class="w-full border-custom p-3 text-sm focus:outline-none text-center font-mono"
+                           autocomplete="current-password">
+                    <button @click="handleLogin" 
+                            class="w-full border-custom py-3 text-[11px] font-bold uppercase hover:bg-black hover:text-white transition-all tracking-[0.3em]">
+                        验证并进入
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <template v-if="!siteConfig.view_auth_enabled || isLoggedIn">
+            <div class="flex-grow main-content">
+
+                <!-- ============ 顶部 Header：三段式布局 ============ -->
+                <header class="flex flex-col gap-3 md:gap-2 mb-6 pb-3 border-b-[1px]">
+
+                    <!-- 第一行：Logo + 标题 -->
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="flex-shrink-0">
+                            <img v-if="siteConfig.site_logo" :src="siteConfig.site_logo" class="h-10 w-10 sm:h-12 sm:w-12 object-contain">
+                            <div v-else class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-black border text-xl sm:text-2xl uppercase italic">
+                                {{ (siteConfig.site_name || 'S').charAt(0) }}
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-center leading-none site-title-block overflow-hidden">
+                            <h1 class="site-title text-lg sm:text-2xl font-black tracking-[0.05em] sm:tracking-[0.1em] uppercase mb-1 truncate">{{ siteConfig.site_name }}</h1>
+                            <p class="site-slogan text-[8px] sm:text-[9px] uppercase">{{ siteConfig.site_slogan }}</p>
+                        </div>
+                    </div>
+
+                    <!-- 第二行 + 第三行（桌面端合并为一行）：系统概览统计条 + 操作按钮 -->
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+
+                        <!-- 系统概览统计条：总上传/总下载/节点总数/连接状态 统一展示，作为整体置于主机列表最上方 -->
+                        <div class="stats-bar grid grid-cols-2 md:flex md:items-center gap-x-4 gap-y-2 md:gap-6 font-mono">
+                            <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">总上传: <span class="ml-1">{{ formatTrafficUnit(totalUploadBytes) }}</span></div>
+                            <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">总下载: <span class="ml-1">{{ formatTrafficUnit(totalDownloadBytes) }}</span></div>
+                            <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">节点总数: <span class="ml-1">{{ servers.length }}</span></div>
+                            <div class="stats-item text-[8px] sm:text-[9px] uppercase tracking-widest">
+                                <div v-html="wsStatus"></div>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮：左对齐自然排列 -->
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="relative" @click.stop>
+                                <button @click="toggleThemeDropdown" class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
+                                    <span>🎨</span><span>主题切换</span>
+                                </button>
+                                <div v-if="showThemeDropdown" class="theme-dropdown-wrapper">
+                                    <div class="theme-dropdown-menu w-full">
+                                        <button @click.stop="switchTheme('default')" 
+                                                class="w-full text-[9px] border-none px-3 py-1 font-bold hover:bg-black hover:text-white transition-all text-left flex items-center gap-2 h-8">
+                                            <div class="w-3 h-3 rounded-full border border-gray-600 flex items-center justify-center">
+                                                <div class="w-2 h-2 rounded-full" :class="currentTheme === 'default' ? 'bg-green-600' : 'bg-gray-300'"></div>
+                                            </div>
+                                            <span>☀️ 亮色</span>
+                                        </button>
+                                        <button @click.stop="switchTheme('dark')" 
+                                                class="w-full text-[9px] border-none px-3 py-1 font-bold hover:bg-black hover:text-white transition-all text-left flex items-center gap-2 h-8 border-t border-[#000000]">
+                                            <div class="w-3 h-3 rounded-full border border-gray-600 flex items-center justify-center">
+                                                <div class="w-2 h-2 rounded-full" :class="currentTheme === 'dark' ? 'bg-green-600' : 'bg-gray-300'"></div>
+                                            </div>
+                                            <span>🌙 暗色</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button @click="toAdminPanel" class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
+                                <span>⚙️</span><span>管理面板</span>
+                            </button>
+                            <button v-if="hasAdminToken" @click="handleLogout" class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
+                                <span>🔒</span><span>退出登录</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- 桌面端表头（md 及以上显示） -->
+                <div class="grid-header hidden md:grid">
+                    <div>节点标识 / 操作系统</div>
+                    <div v-if="globalSettings.show_cpu" class="text-center">处理器</div>
+                    <div v-if="globalSettings.show_mem" class="text-center">内存</div>
+                    <div v-if="globalSettings.show_disk" class="text-center">硬盘</div>
+                    <div class="text-center">实时带宽</div>
+                    <div class="text-center">月度流量</div>
+                    <div class="text-center">系统负载</div>
+                    <div class="text-center">在线时长</div>
+                    <div v-if="globalSettings.show_online_rate" class="text-center">在线率</div>
+                    <div class="text-right">操作</div>
+                </div>
+
+                <div v-for="s in sortedServers" :key="s.id" class="mb-3 md:mb-2">
+
+                    <!-- ============ 桌面端：表格行（md 及以上显示） ============ -->
+                    <div class="grid-row hidden md:grid" :class="{ 'offline-row': !s.online }">
+                        <div class="grid-cell flex items-center">
+                            <div :class="['status-dot', s.online ? 'bg-green-600 status-pulse' : 'bg-red-600']"></div>
+                            <div class="node-info-wrapper overflow-hidden flex flex-col gap-0.5">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="node-name font-bold block truncate">
+                                        {{ s.name }} 
+                                        <span v-if="s.online" class="text-[8px] font-normal opacity-80 ml-1 font-mono">
+                                            [进程数:{{ s.process_count || 0 }}]
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="node-meta flex items-center gap-1.5 truncate">
+                                    <span class="text-[9px] truncate">{{ s.location || '未知' }} · {{ s.os || 'Linux' }}</span>
+                                </div>
+                                <div class="node-meta flex items-center gap-1.5 truncate">
+                                    <span v-if="s.group_name" class="text-[9px]">
+                                        {{ s.group_name }} · #{{ String(s.id).slice(-5) }}
+                                    </span>
+                                </div>
+                                <span v-if="!s.online" class="node-process text-[9px] font-mono mt-0.5 block">离线中...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid-cell" v-if="globalSettings.show_cpu">
+                            <div class="percent-box">
+                                <div class="percent-text text-center" :class="getResourceProgressClass(s.cpu).replace('progress-', 'text-')">{{ formatPercent(s.cpu) }}%</div>
+                                <div class="percent-progress">
+                                    <div :style="{width: s.cpu + '%'}" :class="getResourceProgressClass(s.cpu)"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-cell" v-if="globalSettings.show_mem">
+                            <div class="percent-box">
+                                <div class="percent-text text-center" :class="getResourceProgressClass(s.mem).replace('progress-', 'text-')">{{ formatPercent(s.mem) }}%</div>
+                                <div class="percent-progress">
+                                    <div :style="{width: s.mem + '%'}" :class="getResourceProgressClass(s.mem)"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-cell" v-if="globalSettings.show_disk">
+                            <div class="percent-box">
+                                <div class="percent-text text-center" :class="getResourceProgressClass(s.disk).replace('progress-', 'text-')">{{ formatPercent(s.disk) }}%</div>
+                                <div class="percent-progress">
+                                    <div :style="{width: s.disk + '%'}" :class="getResourceProgressClass(s.disk)"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-cell font-mono text-[10px] text-center">
+                            <div class="font-bold whitespace-nowrap">↑ {{ formatSpeed(s.up) }}</div>
+                            <div class="font-bold whitespace-nowrap">↓ {{ formatSpeed(s.down) }}</div>
+                        </div>
+
+                        <div class="grid-cell font-mono text-[10px] text-center">
+                            <div class="whitespace-nowrap">↑ {{ formatTrafficUnit(s.month_up) }}</div>
+                            <div class="whitespace-nowrap">↓ {{ formatTrafficUnit(s.month_down) }}</div>
+                        </div>
+
+                        <div class="grid-cell text-center font-mono text-[10px]" :class="{ 'font-bold': (s.load && s.load[0] > 2) }">
+                            {{ formatLoad(s.load) }}
+                        </div>
+
+                        <div class="grid-cell text-center font-mono text-[10px] whitespace-nowrap">
+                            {{ formatUptimeShort(s.uptime) }}
+                        </div>
+
+                        <div v-if="globalSettings.show_online_rate" class="grid-cell">
+                            <div class="percent-box">
+                                <div class="percent-text text-center" :class="getResourceProgressClass(100 - (s.uptime_rate || 100)).replace('progress-', 'text-')">
+                                    {{ s.uptime_rate || 100 }}%
+                                </div>
+                                <div class="percent-progress">
+                                    <div :style="{width: (s.uptime_rate || 100) + '%'}" :class="getResourceProgressClass(100 - (s.uptime_rate || 100))"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-cell text-right">
+                            <button @click="toggleDetails(s)" class="text-[9px] border-custom px-3 py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center h-8 whitespace-nowrap">
+                                {{ s._showDetails ? '收起详情' : '查看详情' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ============ 手机端：卡片（md 以下显示） ============ -->
+                    <div class="mobile-card md:hidden p-3" :class="{ 'offline-row': !s.online }">
+                        <!-- 卡片头：节点名 + 状态 + 详情按钮 -->
+                        <div class="flex items-center justify-between mb-2 pb-2 divider-soft-bottom">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <div :class="['status-dot flex-shrink-0', s.online ? 'bg-green-600 status-pulse' : 'bg-red-600']"></div>
+                                <div class="overflow-hidden">
+                                    <div class="font-bold text-[12px] truncate">
+                                        {{ s.name }}
+                                        <span v-if="s.online" class="text-[8px] font-normal opacity-70 font-mono">[进程:{{ s.process_count || 0 }}]</span>
+                                    </div>
+                                    <div class="text-[9px] opacity-70 truncate">
+                                        {{ s.location || '未知' }} · {{ s.os || 'Linux' }}
+                                        <template v-if="s.group_name"> · {{ s.group_name }}</template>
+                                    </div>
+                                </div>
+                            </div>
+                            <button @click="toggleDetails(s)" class="text-[9px] border-custom px-2.5 py-1.5 font-bold shrink-0 ml-2 whitespace-nowrap">
+                                {{ s._showDetails ? '收起' : '详情' }}
+                            </button>
+                        </div>
+
+                        <!-- 资源占用：CPU/内存/硬盘同行展示 -->
+                        <div v-if="globalSettings.show_cpu || globalSettings.show_mem || globalSettings.show_disk" 
+                             class="grid gap-2 mb-2 pb-2 divider-soft-bottom"
+                             :class="{
+                                'grid-cols-3': [globalSettings.show_cpu, globalSettings.show_mem, globalSettings.show_disk].filter(Boolean).length === 3,
+                                'grid-cols-2': [globalSettings.show_cpu, globalSettings.show_mem, globalSettings.show_disk].filter(Boolean).length === 2,
+                                'grid-cols-1': [globalSettings.show_cpu, globalSettings.show_mem, globalSettings.show_disk].filter(Boolean).length === 1
+                             }">
+                            <div v-if="globalSettings.show_cpu" class="text-center">
+                                <div class="text-[8px] uppercase opacity-60 mb-0.5">处理器</div>
+                                <div class="font-mono text-[11px] font-bold" :class="getResourceProgressClass(s.cpu).replace('progress-', 'text-')">{{ formatPercent(s.cpu) }}%</div>
+                                <div class="mc-percent-progress mt-1"><div :style="{width: s.cpu + '%'}" :class="getResourceProgressClass(s.cpu)"></div></div>
+                            </div>
+                            <div v-if="globalSettings.show_mem" class="text-center">
+                                <div class="text-[8px] uppercase opacity-60 mb-0.5">内存</div>
+                                <div class="font-mono text-[11px] font-bold" :class="getResourceProgressClass(s.mem).replace('progress-', 'text-')">{{ formatPercent(s.mem) }}%</div>
+                                <div class="mc-percent-progress mt-1"><div :style="{width: s.mem + '%'}" :class="getResourceProgressClass(s.mem)"></div></div>
+                            </div>
+                            <div v-if="globalSettings.show_disk" class="text-center">
+                                <div class="text-[8px] uppercase opacity-60 mb-0.5">硬盘</div>
+                                <div class="font-mono text-[11px] font-bold" :class="getResourceProgressClass(s.disk).replace('progress-', 'text-')">{{ formatPercent(s.disk) }}%</div>
+                                <div class="mc-percent-progress mt-1"><div :style="{width: s.disk + '%'}" :class="getResourceProgressClass(s.disk)"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- 其余指标：两列 key-value -->
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[10px]">
+                            <div class="flex justify-between items-center">
+                                <span class="opacity-60 text-[9px]">实时带宽</span>
+                                <span class="text-right leading-tight">↑{{ formatSpeed(s.up) }}<br>↓{{ formatSpeed(s.down) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="opacity-60 text-[9px]">月度流量</span>
+                                <span class="text-right leading-tight">↑{{ formatTrafficUnit(s.month_up) }}<br>↓{{ formatTrafficUnit(s.month_down) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="opacity-60 text-[9px]">系统负载</span>
+                                <span :class="{ 'font-bold': (s.load && s.load[0] > 2) }">{{ formatLoad(s.load) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="opacity-60 text-[9px]">在线时长</span>
+                                <span>{{ formatUptimeShort(s.uptime) }}</span>
+                            </div>
+                            <div v-if="globalSettings.show_online_rate" class="flex justify-between items-center col-span-2 pt-1.5 divider-soft-top">
+                                <span class="opacity-60 text-[9px]">在线率</span>
+                                <span class="font-bold" :class="getResourceProgressClass(100 - (s.uptime_rate || 100)).replace('progress-', 'text-')">{{ s.uptime_rate || 100 }}%</span>
+                            </div>
+                        </div>
+
+                        <div v-if="!s.online" class="text-[9px] font-mono mt-2 pt-2 divider-soft-top text-center opacity-70">离线中...</div>
+                    </div>
+
+                    <!-- ============ 详情区（桌面/手机共用） ============ -->
+                    <div v-if="s._showDetails" class="p-4 md:p-6 border-x border-b space-y-6 md:space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                        
+                        <!-- 容器运行状态 -->
+                        <section v-if="globalSettings.show_docker" class="docker-box">
+                            <div class="flex flex-wrap justify-between items-end mb-4 border-b pb-2 gap-2">
+                                <h4 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                    <span class="w-1 h-3"></span> 容器运行状态
+                                </h4>
+                                <div v-if="s.docker && s.docker.total_count !== undefined" class="flex gap-3 md:gap-4 text-[9px] md:text-[10px] font-mono">
+                                    <span>运行中/总数: <b>{{ s.docker.running_count }} / {{ s.docker.total_count }}</b></span>
+                                    <span>运行率: <b>{{ s.docker.total_count ? Math.round((s.docker.running_count / s.docker.total_count) * 100) : 0 }}%</b></span>
+                                </div>
+                            </div>
+
+                            <div v-if="s.docker && s.docker.container_list && s.docker.container_list.length > 0">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                    <div v-for="c in s.docker.container_list" :key="c.name" class="docker-card border p-3 hover:border-black transition-colors">
+                                        <div class="flex justify-between items-start mb-2 pb-2 border-b">
+                                            <div class="docker-card-name font-bold text-xs truncate max-w-[140px]" :title="c.name">{{ c.name }}</div>
+                                            <div :class="['text-[8px] px-1 font-bold border uppercase shrink-0', (c.status && c.status.toLowerCase().includes('up')) ? 'border-green-500' : 'border-red-500']">
+                                                {{ (c.status && c.status.toLowerCase().includes('up')) ? '运行中' : '已停止' }}
+                                            </div>
+                                        </div>
+                                        <div class="text-[10px] font-mono space-y-1">
+                                            <div class="flex justify-between"><span>处理器/内存</span><span class="font-bold">{{ c.cpu_usage }}% / {{ c.memory_usage }}</span></div>
+                                            <div class="flex justify-between border-t pt-1">
+                                                <span>数据大小/总量</span>
+                                                <span class="font-bold">{{ c.disk_usage }} / {{ c.root_fs_size }}</span>
+                                            </div>
+                                            <div class="flex justify-between pt-1 border-t">
+                                                <span>↑ {{ formatTrafficUnit(c.net_out) }}</span>
+                                                <span>↓ {{ formatTrafficUnit(c.net_in) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-else class="docker-empty-state">
+                                <span class="icon">🐳</span>
+                                <div class="title">暂无容器信息</div>
+                                <div class="desc">该节点未运行 Docker 容器，或尚未上报容器数据</div>
+                            </div>
+                        </section>
+
+                        <section v-if="globalSettings.show_net_delay" class="network-section">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                                <h4 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                    <span class="w-1 h-3"></span> 网络链路检测
+                                </h4>
+                                
+                                <div class="flex items-center gap-2 overflow-x-auto max-w-full w-full sm:w-auto">
+                                    <div class="flex border-custom overflow-hidden shrink-0">
+                                        <button 
+                                            v-for="opt in getServerTimeOptions(s)" 
+                                            :key="opt.hours"
+                                            @click.stop="selectTimeRange(s, opt.hours)"
+                                            class="px-2.5 md:px-3 py-1 text-[9px] font-bold uppercase transition-all border-r last:border-r-0 border-[#000] whitespace-nowrap"
+                                            :class="s._selectedTimeRange === opt.hours ? 'bg-black text-white' : 'hover:bg-gray-200'"
+                                        >
+                                            {{ opt.label }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="h-[200px] md:h-[250px] border p-2 md:p-4 mb-4 md:mb-6">
+                                <canvas :id="'chart-' + s.id"></canvas>
+                            </div>
+
+                            <!-- 桌面端：表格（md 及以上） -->
+                            <div v-if="globalSettings.show_task_list && s.tasks && s.tasks.length > 0" class="hidden md:block overflow-x-auto">
+                                <table class="task-list-outer-border w-full text-[10px] border-collapse min-w-[600px]">
+                                    <thead class="font-black uppercase">
+                                        <tr>
+                                            <th class="border p-2 w-10">#</th>
+                                            <th class="border p-2 text-center">任务标识</th>
+                                            <th class="border p-2">类型</th>
+                                            <th class="border p-2">最低</th>
+                                            <th class="border p-2">最高</th>
+                                            <th class="border p-2">平均</th>
+                                            <th class="border p-2">丢包</th>
+                                            <th class="border p-2">状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="font-mono text-center">
+                                        <tr v-for="(task, idx) in s.tasks" :key="task.id" 
+                                            class="hover:bg-gray-100 cursor-pointer transition-colors" 
+                                            :class="{ 'bg-blue-50/50': s._activeTaskId === task.id }" 
+                                            @click="selectTask(s, task.id)">
+                                            <td class="border p-2">{{ idx + 1 }}</td>
+                                            <td class="border p-2">
+                                                <div class="flex justify-center">
+                                                    <div class="flex items-center gap-2 text-left min-w-[120px]">
+                                                        <span class="w-2 h-2 shrink-0" :style="{ backgroundColor: colorPalette[idx % colorPalette.length] }"></span>
+                                                        <span class="font-bold">{{ task.name }}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="border p-2 uppercase">{{ task.type }}</td>
+                                            <td class="border p-2">{{ (task.history && task.history.length) ? Math.min(...task.history.filter(v=>v>0)) : 0 }}ms</td>
+                                            <td class="border p-2">{{ (task.history && task.history.length) ? Math.max(...task.history) : 0 }}ms</td>
+                                            <td class="border p-2 font-bold">{{ (task.history && task.history.length) ? (task.history.reduce((a,b)=>a+b,0)/task.history.length).toFixed(1) : 0 }}ms</td>
+                                            <td class="border p-2 font-bold">{{ calculateLossRate(task.history) }}%</td>
+                                            <td class="border p-2">
+                                                <span class="status-dot inline-block" :class="task.last_delay >= 0 ? 'bg-green-500' : 'bg-red-500'"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="mt-2 text-[8px] uppercase task-list-hint-container">
+                                    <div class="task-list-hint">
+                                        点击行可切换单线焦点模式｜探测频率: {{ globalSettings.node_refresh_interval }} 秒
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 手机端：卡片（md 以下） -->
+                            <div v-if="globalSettings.show_task_list && s.tasks && s.tasks.length > 0" class="md:hidden">
+                                <div v-for="(task, idx) in s.tasks" :key="task.id"
+                                     class="mobile-task-card"
+                                     :class="{ 'bg-blue-50/50': s._activeTaskId === task.id }"
+                                     @click="selectTask(s, task.id)">
+                                    <div class="mt-row">
+                                        <span class="flex items-center gap-2">
+                                            <span class="w-2 h-2 shrink-0" :style="{ backgroundColor: colorPalette[idx % colorPalette.length] }"></span>
+                                            <span class="font-bold text-[11px]">{{ task.name }}</span>
+                                        </span>
+                                        <span class="flex items-center gap-2">
+                                            <span class="text-[9px] uppercase opacity-70">{{ task.type }}</span>
+                                            <span class="status-dot inline-block" :class="task.last_delay >= 0 ? 'bg-green-500' : 'bg-red-500'"></span>
+                                        </span>
+                                    </div>
+                                    <div class="mt-row font-mono text-[10px]">
+                                        <span class="mt-label">最低 / 最高 / 平均</span>
+                                        <span>
+                                            {{ (task.history && task.history.length) ? Math.min(...task.history.filter(v=>v>0)) : 0 }} /
+                                            {{ (task.history && task.history.length) ? Math.max(...task.history) : 0 }} /
+                                            {{ (task.history && task.history.length) ? (task.history.reduce((a,b)=>a+b,0)/task.history.length).toFixed(1) : 0 }} ms
+                                        </span>
+                                    </div>
+                                    <div class="mt-row font-mono text-[10px]">
+                                        <span class="mt-label">丢包率</span>
+                                        <span class="font-bold">{{ calculateLossRate(task.history) }}%</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-[8px] uppercase text-center opacity-70">
+                                    点击卡片可切换单线焦点模式｜探测频率: {{ globalSettings.node_refresh_interval }} 秒
+                                </div>
+                            </div>
+
+                            <!-- 无任务提示 -->
+                            <div v-else-if="globalSettings.show_task_list" class="text-center text-[10px] text-gray-400 py-4">
+                                暂无网络链路检测任务
+                            </div>
+                        </section>
+
+                        <section v-if="globalSettings.show_heatmap" class="uptime-stats-panel">
+                            <div class="flex flex-wrap justify-between items-end mb-4 gap-2">
+                                <h4 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                    <span class="w-1 h-3"></span> 服务可用性检测
+                                </h4>
+                                <div class="text-[9px] md:text-[10px] font-mono uppercase">
+                                    统计总天数: 
+                                    <b>
+                                        {{ s.total_stats_days || (s.uptime_heat_map ? s.uptime_heat_map.length : 1) }} 天
+                                    </b>
+                                </div>
+                            </div>
+
+                            <div class="heatmap-wrapper flex gap-[1px] sm:gap-[2px] md:gap-1 items-end h-12 overflow-x-auto">
+                                <template v-if="!s.uptime_heat_map || s.uptime_heat_map.length === 0">
+                                    <div v-for="n in (s.total_stats_days || 1)" :key="n"
+                                         class="heatmap-bar flex-grow h-8 relative group"
+                                         :class="(n === 1 && s.online) ? 'bg-green-500' : (n === 1 ? 'bg-red-500' : 'bg-gray-100')">
+                                         
+                                        <div class="heatmap-label-center">
+                                            <template v-if="n === 1">
+                                                {{ s.online ? '在线' : '离线' }}
+                                            </template>
+                                            <template v-else>
+                                                无数据
+                                            </template>
+                                        </div>
+
+                                        <div class="heatmap-label-bottom" v-if="n === 1">
+                                            今天
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <div v-for="(item, idx) in s.uptime_heat_map" :key="idx"
+                                         class="heatmap-bar flex-grow h-8 relative transition-all group"
+                                         :class="[
+                                            item.status === 'online' ? 'bg-green-500' : (item.status === 'offline' ? 'bg-red-500' : 'bg-gray-100'),
+                                            idx === 0 ? 'ring-1 ring-black shadow-inner' : ''
+                                         ]">
+                                         
+                                         <div class="heatmap-label-center">
+                                             <template v-if="!item.status || item.status === 'unknown'">无数据</template>
+                                             <template v-else-if="idx === 0 && item.uptime_rate === 100">在线</template>
+                                             <template v-else-if="item.uptime_rate > 0">{{ item.uptime_rate }}%</template>
+                                         </div>
+
+                                         <div class="heatmap-label-bottom hidden sm:block" v-if="idx % 7 === 0 || idx === 0">
+                                             {{ idx === 0 ? '今天' : item.date.split('-').slice(1).join('/') }}
+                                         </div>
+                                         <div class="heatmap-label-bottom opacity-0 group-hover:opacity-100 hidden sm:block" v-else>
+                                             {{ item.date.split('-').slice(1).join('/') }}
+                                         </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6 md:mt-4">
+                                <div class="uptime-card border p-4">
+                                    <div class="text-[9px] uppercase font-bold mb-1">平均在线率</div>
+                                    <div class="text-2xl font-black" :class="getResourceProgressClass(100 - (s.uptime_rate || (s.online ? 100 : 0))).replace('progress-', 'text-')">
+                                        {{ s.uptime_rate || (s.online ? 100 : 0) }}%
+                                    </div>
+                                    <div class="w-full h-1 mt-2">
+                                        <div class="h-full transition-all duration-1000" 
+                                             :class="getResourceProgressClass(100 - (s.uptime_rate || (s.online ? 100 : 0)))"
+                                             :style="{width: (s.uptime_rate || (s.online ? 100 : 0)) + '%'}"></div>
+                                    </div>
+                                </div>
+                                <div class="uptime-card border p-4">
+                                    <div class="text-[9px] uppercase font-bold mb-1">运行报告总结</div>
+                                    <div class="text-lg font-bold uppercase" :class="s.online ? 'text-green-600' : 'text-red-500'">
+                                        {{ s.online ? '系统运行正常' : '系统连接断开' }}
+                                    </div>
+                                    <div class="text-[8px] mt-1 uppercase">累计停机时长: {{ s.offline_total || '0s' }}</div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="w-full mt-12 pb-8 pt-4 border-t flex flex-col sm:flex-row justify-between items-center text-[9px] uppercase tracking-[0.2em] gap-4 main-content">
+                <div class="text-center sm:text-left" v-html="siteConfig.site_footer || '&copy; 2026 SLITE MONITORING SYSTEM'"></div>
+                <div class="flex gap-4 shrink-0 font-bold items-center">
+                    <span>版本: {{ siteConfig.version || '0.1.0' }}</span>
+                    <span class="w-1 h-1 rounded-full"></span>
+                    <span>Build.20260114.2105</span>
+                </div>
+            </footer>
+        </template>
+    </div>
+    
+    <script src="/static/monitor/assets/js/monitor.js"></script>
+</body>
+</html>

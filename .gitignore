@@ -1,0 +1,66 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/dist/
+/bin/
+/cmd/**/bin/
+
+# Dependency directories
+/vendor/
+/node_modules/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Configuration files with secrets
+/config.yaml
+/config.yml
+/*.env
+*.local
+internal/configs/config.yaml
+
+# Logs
+*.log
+logs/
+/slite.log
+/slite-agent.log
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Build artifacts
+/dist/bin/*
+/slite-server
+/slite-agent
+
+# Coverage
+*.coverprofile
+coverage.out
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+/backups/
+*.tmp
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp

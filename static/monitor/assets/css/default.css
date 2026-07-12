@@ -1,0 +1,405 @@
+/* 
+ * SLITE MONITORING - 亮色主题
+ */
+
+/* --- 基础颜色定义 --- */
+*, ::after, ::before {
+    border-color: #666666 !important;
+}
+
+body { 
+    background-color: #ffffff; 
+    color: #333333; 
+}
+.border-custom { border-color: #666666; }
+.label-v { color: #888888; }
+::-webkit-scrollbar-thumb { background: #666666; }
+::-webkit-scrollbar-track { background: #f0f0f0; }
+
+/* --- 展开详情容器 --- */
+.detail-container { 
+    border-color: #666666; 
+    background: #ffffff; 
+}
+.grid-row.expanded { border-color: #666666; }
+
+/* 状态点颜色 */
+.status-dot-green { color: #10b981 !important; }
+.status-dot-yellow { color: #f59e0b; }
+.status-dot-red { color: #ef4444; }
+
+/* 节点信息组件 */
+.id-badge { 
+    color: #666666; 
+    background: #f7f7f7; 
+    border-color: #666666; 
+}
+.meta-tag { 
+    background: #fafafa; 
+    color: #666666; 
+    border-color: #666666; 
+}
+.node-info-wrapper .node-name { color: #333333; }
+.node-info-wrapper .node-meta { color: #666666; }
+
+/* 主列表表格 */
+.grid-header { 
+    border-color: #666666; 
+    background-color: #ffffff;
+    color: #333333;
+}
+.grid-header > div { border-color: #666666; }
+
+.grid-row { 
+    border-color: #666666; 
+    background: white; 
+}
+.grid-row:hover { background-color: #f9f9f9; }
+.grid-cell { 
+    border-color: #666666; 
+    color: #333333;
+}
+
+/* 进度条 */
+.percent-text { color: #333333 !important; }
+.percent-progress { background-color: #e9e9e9; }
+.progress-normal { background-color: #166534 !important; }
+.progress-warning { background-color: #d97706 !important; }
+.progress-danger { background-color: #dc3545 !important; }
+
+/* 探测列表 */
+.task-list-title { color: #333333; }
+.task-list-container { 
+    border-color: #666666; 
+    background: #fff; 
+}
+
+.task-list-header { 
+    background-color: #f8f9fa; 
+    border-color: #666666; 
+    color: #333; 
+}
+.task-list-header > div, .task-item > div { border-color: #eee; }
+
+.task-name { color: #333333; }
+
+.task-item { 
+    border-color: #666666; 
+    color: #555555;
+}
+.task-item:hover { background-color: #f9f9fa; }
+
+.task-item.active { background-color: #f1f3f5; }
+
+.task-status { border-color: #666666; }
+.status-running { background-color: #dcfce7; color: #166534; }
+.status-stopped { background-color: #f5f5f5; color: #4b5563; }
+
+/* Docker 样式 */
+.docker-summary { 
+    background-color: #f8f9fa; 
+    border-color: #666666; 
+}
+.docker-summary-label { color: #6c757d; }
+.docker-summary-value { color: #333; }
+.docker-card { 
+    border-color: #666666; 
+    background-color: #ffffff; 
+}
+.docker-card-header { border-color: #666666; }
+.docker-card-name { color: #333; }
+.docker-card-status { border-color: #666666; }
+.docker-card-metric { color: #666; }
+
+/* 在线统计与热力图 */
+.heatmap-item { 
+    border-color: #666666; 
+    background-color: #ffffff;
+}
+.heatmap-item.online { background:#dcfce7; color:#166534; }
+.heatmap-item.offline { background:#fee2e2; color:#991b1b; }
+
+.uptime-card { 
+    background: #f8f9fa; 
+    border-color: #666666; 
+}
+.uptime-card-value { color: #333; }
+.uptime-progress { 
+    background:#e5e7eb; 
+    border-color: #666666; 
+}
+.uptime-progress-bar { background:#166534; }
+
+/* 设置与管理按钮 */
+.setting-box { 
+    background:#fff; 
+    border-color: #666666; 
+    color: #333;
+}
+.admin-btn { 
+    background:#fff; 
+    border-color: #666666; 
+    color: #333;
+}
+.setting-box:hover, .admin-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #333333;
+}
+
+/* 新增样式 */
+.task-list-outer-border { border-color: #666666 !important; }
+.text-gray-dark { color: #999 !important; }
+.heatmap-label-bottom { color: #999; }
+.offline-row { opacity: 0.65; background-color: #f8f9fa; }
+
+.text-normal { color: #166534 !important; }
+.text-warning { color: #d97706 !important; }
+.text-danger { color: #dc3545 !important; }
+
+.chart-container { background-color: #ffffff; }
+
+.uptime-day.online { background-color: #10b981 !important; }
+.uptime-day.warning { background-color: #f59e0b !important; }
+.uptime-day.offline { background-color: #ef4444 !important; }
+.uptime-day.none { background-color: #e5e7eb !important; color: #9ca3af; }
+
+/* 状态点颜色定义 */
+.bg-green-600 { background-color: #10b981 !important; }
+.bg-red-600 { background-color: #ef4444 !important; }
+.bg-green-500 { background-color: #10b981 !important; }
+.bg-red-500 { background-color: #ef4444 !important; }
+
+/* 文本颜色定义 */
+.text-green-600 { color: #10b981 !important; }
+.text-red-600 { color: #ef4444 !important; }
+.text-yellow-600 { color: #f59e0b !important; }
+.text-red-500 { color: #ef4444 !important; }
+.text-blue-600 { color: #3b82f6 !important; }
+.text-blue-500 { color: #3b82f6 !important; }
+.text-gray-400 { color: #9ca3af !important; }
+.text-gray-500 { color: #6b7280 !important; }
+.text-black { color: #000 !important; }
+
+/* 边框颜色定义 */
+.border-gray-200 { border-color: #e5e7eb !important; }
+.border-gray-100 { border-color: #f3f4f6 !important; }
+.border-green-500 { border-color: #10b981 !important; }
+.border-red-500 { border-color: #ef4444 !important; }
+
+/* 背景颜色定义 */
+#app .bg-white { background-color: #ffffff !important; }
+.bg-gray-50 { background-color: #f9fafb !important; }
+.bg-gray-100 { background-color: #f3f4f6 !important; }
+.bg-blue-50 { background-color: #eff6ff !important; }
+.bg-green-500 { background-color: #10b981 !important; }
+.bg-red-500 { background-color: #ef4444 !important; }
+.bg-black { background-color: #000 !important; }
+
+/* 交互动效 */
+.heatmap-bar:hover { filter: brightness(0.9); }
+.hover\:bg-black:hover { background-color: #000 !important; }
+.hover\:text-white:hover { color: #fff !important; }
+.hover\:bg-gray-100:hover { background-color: #dddddd !important; }
+.hover\:bg-gray-200:hover { background-color: #e5e7eb !important; }
+.hover\:border-black:hover { border-color: #000 !important; }
+
+/* 登录页面样式 */
+#app .fixed.inset-0 { background-color: #ffffff !important; }
+#app .shadow-xl { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important; }
+#app .text-gray-400 { color: #6b7280 !important; }
+
+/* 页眉样式 */
+header { border-color: #e5e7eb !important; }
+header h1, header .text-gray-400 { color: #333333 !important; }
+
+/* 页脚样式 */
+footer { border-color: #e5e7eb !important; }
+footer .text-gray-400 { color: #6b7280 !important; }
+footer .text-black { color: #333333 !important; }
+
+/* 按钮样式 */
+button.border-custom {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border-color: #666666 !important;
+}
+button.border-custom:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+}
+
+/* 输入框样式 */
+input.border-custom {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border-color: #666666 !important;
+}
+input.border-custom:focus {
+    background-color: #f8f9fa !important;
+    border-color: #3b82f6 !important;
+}
+
+/* 滚动条 */
+* { scrollbar-color: #666666 #f0f0f0; }
+
+/* 选择文本颜色 */
+::selection { background-color: #3b82f6; }
+
+/* 占位符颜色 */
+::placeholder { color: #9ca3af; }
+
+/* 链接颜色 */
+a { color: #3b82f6; }
+a:hover { color: #2563eb; }
+
+/* 监控页面内部按钮样式 */
+#app button.text-\\[9px\\].border-custom {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border-color: #666666 !important;
+}
+
+#app button.text-\\[9px\\].border-custom:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+}
+
+/* 网络链路检测时间选择按钮 */
+.network-section button.border-custom {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border-color: #666666 !important;
+}
+
+.network-section button.border-custom:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+}
+
+.network-section button.border-custom.bg-black {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* 主题切换按钮样式 */
+.theme-dropdown-wrapper .border-none {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+}
+
+.theme-dropdown-wrapper .border-none:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* 查看详情按钮 */
+.grid-cell button.text-\\[9px\\].border-custom {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border-color: #666666 !important;
+}
+
+.grid-cell button.text-\\[9px\\].border-custom:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+}
+
+/* 登录页面亮色主题样式 */
+body.login-page {
+    background-color: #f3f4f6 !important;
+    color: #1a1a1a !important;
+}
+
+.login-container {
+    background-color: #ffffff !important;
+    box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1) !important;
+    border-color: #000000 !important;
+}
+
+.login-container::before {
+    background-color: #000000 !important;
+}
+
+.login-title {
+    color: #1a1a1a !important;
+}
+
+.login-subtitle {
+    color: #6b7280 !important;
+}
+
+.login-input {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+    border-color: #000000 !important;
+}
+
+.login-input::placeholder {
+    color: #9ca3af !important;
+}
+
+.login-input:focus {
+    border-color: #000000 !important;
+}
+
+.login-button {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+    border-color: #000000 !important;
+}
+
+.login-button:hover:not(:disabled) {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.login-error {
+    background-color: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #dc2626 !important;
+}
+
+.login-footer {
+    border-color: #f3f4f6 !important;
+}
+
+.login-footer-text {
+    color: #6b7280 !important;
+}
+
+.login-footer-link {
+    color: #1a1a1a !important;
+    border-color: #000000 !important;
+}
+
+.login-footer-link:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.login-page-footer {
+    color: #6b7280 !important;
+}
+
+.login-logo {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* ===== 亮色主题移动端适配 ===== */
+@media (max-width: 640px) {
+    .grid-cell { border-color: #666666 !important; }
+    .detail-container .grid-cell { border-color: #666666 !important; }
+    .docker-card { background-color: #ffffff !important; border-color: #666666 !important; }
+    .uptime-card { background: #f8f9fa !important; border-color: #666666 !important; }
+    .docker-empty-state { border-color: #666666 !important; color: #999 !important; }
+    .docker-empty-state .title { color: #666 !important; }
+    .grid-row { border-color: #666666 !important; }
+    .detail-container { border-color: #666666 !important; background: #ffffff !important; }
+    .task-list-outer-border { border-color: #666666 !important; }
+    .task-list-outer-border th, .task-list-outer-border td { border-color: #666666 !important; }
+}

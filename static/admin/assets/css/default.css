@@ -1,0 +1,466 @@
+/**
+ * SLITE ADMIN - 默认主题 (浅色)
+ * 包含管理页面和登录页面的浅色样式
+ */
+
+/**
+ * 浅色主题全局变量定义
+ */
+:root {
+    /* 边框颜色 */
+    --border-color: #666666;
+    
+    /* 背景色 */
+    --bg-main: #ffffff;
+    --bg-secondary: #f9f9f9;
+    --bg-gray-50: #f9fafb;
+    --bg-gray-100: #f3f4f6;
+    --bg-gray-200: #e5e7eb;
+    --bg-black: #000000;
+    --bg-white: #ffffff;
+    --bg-red-50: #fef2f2;
+    --bg-red-600: #dc2626;
+    --bg-green-50: #f0fdf4;
+    --bg-green-600: #16a34a;
+    --bg-blue-50: #eff6ff;
+    --bg-blue-500: #3b82f6;
+    --bg-yellow-50: #fefce8;
+    --bg-yellow-300: #fde047;
+    --bg-orange-100: #ffedd5;
+    --bg-orange-400: #fb923c;
+    --bg-amber-50: #fffbeb;
+    --bg-amber-500: #f59e0b;
+    
+    /* 文字颜色 */
+    --text-main: #333333;
+    --text-black: #000000;
+    --text-white: #ffffff;
+    --text-gray-300: #d1d5db;
+    --text-gray-400: #9ca3af;
+    --text-gray-500: #6b7280;
+    --text-gray-600: #4b5563;
+    --text-red-600: #dc2626;
+    --text-green-600: #16a34a;
+    --text-blue-500: #3b82f6;
+    --text-orange-500: #f97316;
+    --text-orange-600: #ea580c;
+    --text-yellow-300: #fde047;
+    
+    /* 阴影颜色 */
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --shadow-lg-color: rgba(0, 0, 0, 0.1);
+    
+    /* 边框颜色 */
+    --ring-color: rgba(0, 0, 0, 0.1);
+}
+
+/**
+ * 应用到 body
+ */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+}
+
+/**
+ * 登录页面样式
+ */
+.login-container {
+    background-color: var(--bg-white);
+}
+
+.login-box {
+    background-color: var(--bg-white);
+    border: 1px solid var(--border-color);
+    box-shadow: 8px 8px 0px var(--shadow-color);
+}
+
+.login-logo-fallback {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+.login-title {
+    color: var(--text-black);
+}
+
+.login-subtitle {
+    color: var(--text-gray-400);
+}
+
+.login-input {
+    color: var(--text-black);
+    border-color: var(--border-color);
+    background-color: transparent;
+}
+
+.login-input:focus {
+    background-color: var(--bg-gray-50);
+    border-color: var(--border-color);
+}
+
+.login-input::placeholder {
+    color: var(--text-gray-400);
+}
+
+.login-button {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+    border-color: var(--border-color);
+}
+
+.login-button:hover {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+/**
+ * 菜单与导航
+ */
+.menu-item {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+}
+
+.menu-item:hover {
+    background-color: var(--bg-gray-50);
+}
+
+.menu-item.active {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+    border-bottom-color: var(--bg-black);
+}
+
+/**
+ * 顶部固定管理按钮
+ */
+.admin-btn {
+    background: var(--bg-white);
+    border-color: var(--border-color);
+    color: var(--text-black);
+}
+
+.setting-box {
+    color: var(--text-black);
+}
+
+.admin-btn:hover, .setting-box:hover {
+    background-color: var(--bg-gray-50);
+}
+
+/**
+ * 按钮样式系统
+ */
+.btn-primary {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+    border-color: var(--border-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+.btn-secondary {
+    background-color: var(--bg-white);
+    color: var(--text-gray-500);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+    border-color: var(--text-black);
+    color: var(--text-black);
+}
+
+.btn-danger {
+    background-color: var(--bg-white);
+    color: var(--text-red-600);
+    border-color: var(--text-red-600);
+}
+
+.btn-danger:hover {
+    background-color: var(--bg-red-600);
+    color: var(--text-white);
+}
+
+/**
+ * 输入框与选择框
+ */
+.input-custom {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+    border-color: var(--border-color);
+}
+
+.input-custom:focus {
+    background-color: var(--bg-gray-50);
+}
+
+.input-custom-black:focus {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+select.input-custom {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/**
+ * 开关切换样式
+ */
+.toggle-slider {
+    background-color: var(--bg-gray-200);
+    border-color: var(--border-color);
+}
+
+.toggle-slider:before {
+    background-color: var(--bg-black);
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--bg-black);
+    border-color: var(--text-black);
+}
+
+input:checked + .toggle-slider:before {
+    background-color: var(--bg-white);
+}
+
+/**
+ * 进度条文字
+ */
+.percent-text {
+    color: var(--text-black);
+}
+
+/**
+ * 卡片容器样式
+ */
+.card-custom {
+    background-color: var(--bg-white);
+}
+
+.card-custom-no-padding {
+    background-color: var(--bg-white);
+}
+
+/**
+ * 通知提示样式
+ */
+.notification-success {
+    background-color: var(--bg-green-600);
+    color: var(--text-white);
+}
+
+.notification-error {
+    background-color: var(--bg-red-600);
+    color: var(--text-white);
+}
+
+/**
+ * 模态框背景与内容容器
+ */
+.modal-overlay {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.modal-content {
+    background-color: var(--bg-white);
+}
+
+/**
+ * 表格排版样式
+ */
+.table-header {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+.table-row {
+    color: var(--text-black);
+    border-bottom-color: var(--bg-gray-100);
+}
+
+.table-row:hover {
+    background-color: var(--bg-gray-50);
+}
+
+/**
+ * 标签徽章系统
+ */
+.badge-gray {
+    background-color: var(--bg-gray-100);
+    color: var(--text-gray-600);
+}
+
+.badge-red {
+    background-color: var(--bg-red-50);
+    color: var(--text-red-600);
+}
+
+.badge-green {
+    background-color: var(--bg-green-50);
+    color: var(--text-green-600);
+}
+
+.badge-blue {
+    background-color: var(--bg-blue-50);
+    color: var(--text-blue-500);
+}
+
+.badge-orange {
+    background-color: var(--bg-orange-100);
+    color: var(--text-orange-600);
+}
+
+.badge-black {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+/**
+ * 侧边栏样式
+ */
+aside {
+    background-color: var(--bg-white);
+    border-color: var(--border-color);
+}
+
+aside h1 {
+    color: var(--text-black);
+}
+
+aside .text-custom-gray-400 {
+    color: var(--text-gray-400);
+}
+
+/**
+ * 特殊修复样式
+ */
+
+/* 修复管理面板头部颜色 */
+main header {
+    border-color: var(--border-color);
+}
+
+main header h2 {
+    color: var(--text-black);
+}
+
+/* 修复返回按钮样式 */
+a.btn-secondary {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+    border-color: var(--border-color);
+}
+
+a.btn-secondary:hover {
+    background-color: var(--bg-gray-50);
+    border-color: var(--border-color);
+    color: var(--text-black);
+}
+
+/* 修复警告框样式 */
+.card-custom.bg-custom-yellow-50 {
+    background-color: var(--bg-yellow-50);
+    color: var(--text-black);
+}
+
+/* 修复加载动画 */
+.animate-spin {
+    border-color: var(--text-gray-400);
+    border-top-color: var(--text-black);
+}
+
+/* 修复切换开关的选中状态 */
+.toggle-slider.active {
+    background-color: var(--bg-black);
+    border-color: var(--text-black);
+}
+
+/* 修复成功提示 */
+.bg-black.text-white {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+.border-green-500 {
+    border-color: var(--text-green-600);
+}
+
+.border-blue-500 {
+    border-color: var(--text-blue-500);
+}
+
+/* 修复输入框占位符颜色 */
+.input-custom::placeholder {
+    color: var(--text-gray-400);
+    opacity: 0.7;
+}
+
+/* 修复选择框选项背景 */
+.input-custom option {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+}
+
+/* 修复固定位置通知 */
+.fixed.top-8.right-8 .bg-black {
+    background-color: var(--bg-black);
+    color: var(--text-white);
+}
+
+/* 修复模态框背景 */
+.fixed.inset-0.bg-black\/60 {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* 修复模态框内容 */
+.bg-white.p-10 {
+    background-color: var(--bg-white);
+    color: var(--text-black);
+}
+
+/* 修复旋转动画边框 */
+.animate-spin.w-10.h-10.border-4 {
+    border-color: var(--bg-gray-200);
+    border-top-color: var(--text-black);
+}
+
+/* 确保所有背景颜色正确应用 */
+.bg-white, .bg-gray-50, .bg-gray-100 {
+    background-color: var(--bg-white);
+}
+
+/* 确保文字颜色正确应用 */
+.text-black, .text-gray-700, .text-gray-800 {
+    color: var(--text-black);
+}
+
+/* 确保边框颜色正确应用 */
+.border, .border-b, .border-t, .border-l, .border-r {
+    border-color: var(--border-color);
+}
+
+/* 确保悬停效果正确 */
+.hover\:bg-gray-50:hover {
+    background-color: var(--bg-gray-50);
+}
+
+/* 确保按钮禁用状态 */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 确保链接颜色 */
+a {
+    color: var(--text-blue-500);
+}
+
+a:hover {
+    color: var(--text-blue-500);
+    opacity: 0.8;
+}

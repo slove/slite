@@ -1,0 +1,623 @@
+/**
+ * SLITE ADMIN - 暗色主题
+ * 包含管理页面和登录页面的暗色样式
+ */
+
+:root {
+    --border-color: #4a5568;
+    --border-light: #5f718a;
+    --border-dark: #374151;
+    --border-hover: #60a5fa;
+    
+    --bg-main: #0f1419;
+    --bg-secondary: #1a202c;
+    --bg-card: #1f2937;
+    --bg-input: #2d3748;
+    --bg-hover: #2d3748;
+    
+    --bg-gray-50: #1f2937;
+    --bg-gray-100: #2d3748;
+    --bg-gray-200: #4a5568;
+    --bg-gray-300: #718096;
+    --bg-white: #1f2937;
+    --bg-black: #0f1419;
+    
+    --bg-red-50: #3a1f1f;
+    --bg-red-600: #f87171;
+    --bg-green-50: #1a3a2a;
+    --bg-green-600: #34d399;
+    --bg-blue-50: #1e3a8a;
+    --bg-blue-500: #60a5fa;
+    --bg-yellow-50: #3a2b0f;
+    --bg-yellow-300: #fde047;
+    --bg-orange-100: #3a2812;
+    --bg-orange-400: #fb923c;
+    --bg-amber-50: #3a2b0f;
+    --bg-amber-500: #f59e0b;
+    
+    --text-main: #e2e8f0;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-white: #ffffff;
+    --text-black: #e2e8f0;
+    
+    --text-gray-300: #cbd5e1;
+    --text-gray-400: #94a3b8;
+    --text-gray-500: #94a3b8;
+    --text-gray-600: #cbd5e1;
+    --text-red-600: #f87171;
+    --text-green-600: #34d399;
+    --text-blue-500: #60a5fa;
+    --text-orange-500: #fb923c;
+    --text-orange-600: #ea580c;
+    --text-yellow-300: #fde047;
+    
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-lg-color: rgba(0, 0, 0, 0.4);
+    
+    --ring-color: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.login-container {
+    background-color: var(--bg-main);
+}
+
+.login-box {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: 8px 8px 0px var(--shadow-color);
+}
+
+.login-logo-fallback {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+}
+
+.login-title {
+    color: var(--text-primary);
+}
+
+.login-subtitle {
+    color: var(--text-muted);
+}
+
+.login-input {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    background-color: var(--bg-input);
+}
+
+.login-input:focus {
+    background-color: var(--bg-gray-100);
+    border-color: var(--text-blue-500);
+    color: var(--text-primary);
+}
+
+.login-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.login-button {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.login-button:hover {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+    border-color: var(--border-light);
+}
+
+.menu-item {
+    background-color: transparent;
+    color: var(--text-muted);
+}
+
+.menu-item:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.menu-item.active {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+    border-bottom-color: var(--bg-gray-200);
+}
+
+.admin-btn {
+    background: var(--bg-input);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.setting-box {
+    color: var(--text-muted);
+}
+
+.admin-btn:hover, .setting-box:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--border-hover);
+    color: var(--text-white);
+}
+
+.btn-primary {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+    border-color: var(--border-hover);
+}
+
+.btn-secondary {
+    background-color: var(--bg-input);
+    color: var(--text-muted);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
+}
+
+.btn-danger {
+    background-color: var(--bg-input);
+    color: var(--text-red-600);
+    border-color: var(--text-red-600);
+}
+
+.btn-danger:hover {
+    background-color: var(--bg-red-600);
+    color: var(--text-white);
+}
+
+.input-custom {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.input-custom:focus {
+    background-color: var(--bg-gray-100);
+    border-color: var(--text-blue-500);
+    color: var(--text-primary);
+}
+
+.input-custom-black:focus {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+}
+
+select.input-custom {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.input-custom option {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.input-custom option:checked {
+    background-color: var(--bg-blue-500);
+    color: var(--text-white);
+}
+
+.input-custom option:hover {
+    background-color: var(--bg-gray-100);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-gray-100);
+    transition: .4s;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-primary);
+    transition: .4s;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--bg-blue-500);
+    border-color: var(--text-blue-500);
+}
+
+input:checked + .toggle-slider:before {
+    background-color: var(--text-white);
+    transform: translateX(20px);
+}
+
+.percent-text {
+    color: var(--text-primary);
+}
+
+.percent-progress {
+    background: var(--bg-gray-100);
+}
+
+.progress-normal { background: var(--bg-green-600); }
+.progress-warn { background: var(--bg-amber-500); }
+.progress-danger { background: var(--bg-red-600); }
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.status-online { background-color: var(--bg-green-600); }
+.status-offline { background-color: var(--bg-red-600); }
+.status-pulse { animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.card-custom {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: 8px 8px 0px var(--shadow-color);
+    padding: 2rem;
+}
+
+.card-custom-no-padding {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: 8px 8px 0px var(--shadow-color);
+}
+
+.notification-success {
+    background-color: var(--bg-green-600);
+    color: var(--text-white);
+    padding: 0.75rem 1.5rem;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+}
+
+.notification-error {
+    background-color: var(--bg-red-600);
+    color: var(--text-white);
+    padding: 0.75rem 1.5rem;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+}
+
+.modal-content {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: 10px 10px 0px var(--shadow-lg-color);
+    padding: 2.5rem;
+    max-width: 56rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.table-header {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    padding: 1rem 1.5rem;
+}
+
+.table-row {
+    border-bottom: 1px solid var(--border-dark);
+    padding: 1rem 1.5rem;
+    transition: all 0.2s;
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+}
+
+.table-row:hover {
+    background-color: var(--bg-hover);
+}
+
+.badge-gray {
+    background-color: var(--bg-gray-100);
+    color: var(--text-gray-600);
+    font-size: 8px;
+    padding: 1px 4px;
+    text-transform: uppercase;
+}
+
+.badge-red {
+    background-color: var(--bg-red-50);
+    color: var(--text-red-600);
+    border: 1px solid var(--text-red-600);
+    font-size: 9px;
+    padding: 0.125rem 0.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.badge-green {
+    background-color: var(--bg-green-50);
+    color: var(--text-green-600);
+    border: 1px solid var(--text-green-600);
+    font-size: 9px;
+    padding: 0.125rem 0.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.badge-blue {
+    background-color: var(--bg-blue-50);
+    color: var(--text-blue-500);
+    border: 1px solid var(--text-blue-500);
+    font-size: 8px;
+    padding: 0.125rem 0.375rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.badge-orange {
+    background-color: var(--bg-orange-100);
+    color: var(--text-orange-600);
+    border: 1px solid var(--bg-orange-400);
+    font-size: 8px;
+    padding: 1px 4px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.badge-black {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+    font-size: 8px;
+    padding: 1px 4px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+aside {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+aside h1 {
+    color: var(--text-primary);
+}
+
+aside .text-custom-gray-400 {
+    color: var(--text-muted);
+}
+
+main header {
+    border-color: var(--border-color);
+}
+
+main header h2 {
+    color: var(--text-primary);
+}
+
+a.btn-secondary {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+a.btn-secondary:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--border-hover);
+    color: var(--text-white);
+}
+
+.bg-custom-blue-50 {
+    background-color: var(--bg-blue-50);
+}
+
+.border-custom-blue-300 {
+    border-color: var(--text-blue-500);
+}
+
+.card-custom.bg-custom-yellow-50 {
+    background-color: var(--bg-yellow-50);
+    color: var(--text-primary);
+}
+
+.animate-spin {
+    border-color: var(--text-gray-400);
+    border-top-color: var(--text-blue-500);
+}
+
+.toggle-slider.active {
+    background-color: var(--bg-blue-500);
+    border-color: var(--text-blue-500);
+}
+
+.bg-black.text-white {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+}
+
+.border-green-500 {
+    border-color: var(--text-green-600);
+}
+
+.border-blue-500 {
+    border-color: var(--text-blue-500);
+}
+
+.input-custom::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.input-custom option {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.fixed.top-8.right-8 .bg-black {
+    background-color: var(--bg-gray-200);
+    color: var(--text-white);
+}
+
+.fixed.inset-0.bg-black\/60 {
+    background-color: rgba(15, 23, 42, 0.9);
+}
+
+.bg-white.p-10 {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.animate-spin.w-10.h-10.border-4 {
+    border-color: var(--bg-gray-100);
+    border-top-color: var(--text-blue-500);
+}
+
+.bg-white, .bg-gray-50, .bg-gray-100, .bg-gray-50, .bg-gray-100 {
+    background-color: var(--bg-card) !important;
+}
+
+.text-black, .text-gray-700, .text-gray-800, .text-gray-900 {
+    color: var(--text-primary) !important;
+}
+
+.text-gray-400, .text-gray-500 {
+    color: var(--text-muted) !important;
+}
+
+.border, .border-b, .border-t, .border-l, .border-r {
+    border-color: var(--border-color) !important;
+}
+
+.hover\:bg-gray-50:hover,
+.hover\:bg-gray-100:hover,
+.hover\:bg-gray-200:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.hover\:text-black:hover,
+.hover\:text-gray-900:hover {
+    color: var(--text-white) !important;
+}
+
+.hover\:border-black:hover {
+    border-color: var(--border-hover) !important;
+}
+
+button:not(.btn-primary):not(.btn-secondary):not(.btn-danger) {
+    background-color: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):hover {
+    background-color: var(--bg-hover) !important;
+    border-color: var(--border-hover) !important;
+    color: var(--text-white) !important;
+}
+
+a {
+    color: var(--text-blue-500);
+}
+
+a:hover {
+    color: var(--text-blue-500);
+    opacity: 0.9;
+}
+
+pre, code {
+    background-color: var(--bg-gray-100);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+ul, ol {
+    color: var(--text-primary);
+}
+
+li {
+    color: var(--text-muted);
+}
+
+hr {
+    border-color: var(--border-color);
+}
+
+:disabled,
+[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+:focus {
+    outline: 2px solid var(--text-blue-500);
+    outline-offset: 2px;
+}
+
+:active {
+    background-color: var(--bg-gray-100) !important;
+}
+
+* {
+    transition: background-color 0.2s ease, 
+                border-color 0.2s ease, 
+                color 0.2s ease,
+                opacity 0.2s ease;
+}
