@@ -4,6 +4,14 @@ Slite 是一个使用 Go 语言开发的现代化服务器监控系统，提供�
 
 > 项目当前处于 v0.1.0 开发阶段，欢迎提交 Issue 和 Pull Request。
 
+前端预览
+
+![image](https://cdn.nodeimage.com/i/ZUUUzkjnPjN8M9wJxnh1xZD9ZtdrE57W.webp)
+
+后端预览
+
+![image](https://cdn.nodeimage.com/i/d8nHmlYg6y6nJ0HvQNEh18fOzXJDw6H4.webp)
+
 ## 主要特性
 
 * **多节点监控** — 集中管理多台服务器，实时查看 CPU、内存、磁盘、网络流量、系统负载等核心指标
