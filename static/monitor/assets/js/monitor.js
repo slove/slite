@@ -58,6 +58,7 @@ createApp({
         });
 
         const charts = {};
+        const detailVersions = reactive({});
         const extendedHistoryCache = reactive({});
         const timeRangeOptions = {
             1: '1小时', 12: '12小时', 24: '24小时', 72: '3天', 168: '7天', 720: '30天'
@@ -440,9 +441,35 @@ createApp({
                     updateTasksStably(server, processedTasks);
                 }
 
-                if (server._showDetails) {
-                    nextTick(() => updateDelayChart(server, false, 'none'));
-                }
+                if (
+    server._showDetails &&
+    detailVersions[server.id]
+) {
+
+    const version =
+        detailVersions[server.id];
+
+
+    nextTick(()=>{
+
+
+        if(
+            server._showDetails &&
+            detailVersions[server.id] === version
+        ){
+
+            updateDelayChart(
+                server,
+                false,
+                'none'
+            );
+
+        }
+
+
+    });
+
+}
             });
         };
 
@@ -721,31 +748,123 @@ createApp({
          * 切换服务器详情显示
          */
         const toggleDetails = async (server) => {
-            server._showDetails = !server._showDetails;
-            if (server._showDetails) {
-                server._activeTaskId = null;
-                server._selectedTimeRange = 0;
-                
-                if (server.tasks && server.tasks.length > 0) {
-                    for (const task of server.tasks) {
-                        const cacheKey = `${server.id}-${task.id}`;
-                        if (!availableTimeRanges[cacheKey]) {
-                            await fetchTaskTimeRange(server.id, task.id);
-                        }
-                    }
-                }
-                nextTick(() => updateDelayChart(server, true));
-            } else {
-                if (charts[server.id]) {
-                    charts[server.id].destroy();
-                    delete charts[server.id];
-                    const canvas = document.getElementById(`chart-${server.id}`);
-                    if (canvas) {
-                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                    }
-                }
+
+    const id = server.id;
+
+
+    if (!detailVersions[id]) {
+        detailVersions[id] = 0;
+    }
+
+
+    const version = ++detailVersions[id];
+
+
+    const opening = !server._showDetails;
+
+
+    // 立即改变状态
+    server._showDetails = opening;
+
+
+
+    /*
+     * 收起
+     */
+    if (!opening) {
+
+
+        server._activeTaskId = null;
+        server._selectedTimeRange = 0;
+
+
+
+        if (charts[id]) {
+
+            try {
+                charts[id].destroy();
+            } catch(e){}
+
+            delete charts[id];
+
+        }
+
+
+        return;
+
+    }
+
+
+
+
+    /*
+     * 展开
+     */
+
+
+    server._activeTaskId = null;
+    server._selectedTimeRange = 0;
+
+
+
+    if(server.tasks && server.tasks.length){
+
+
+        for(const task of server.tasks){
+
+
+            const key =
+                `${id}-${task.id}`;
+
+
+            if(!availableTimeRanges[key]){
+
+                await fetchTaskTimeRange(
+                    id,
+                    task.id
+                );
+
             }
-        };
+
+
+            // 用户期间点击收起
+            if(
+                detailVersions[id] !== version ||
+                !server._showDetails
+            ){
+
+                return;
+
+            }
+
+        }
+
+
+    }
+
+
+
+    nextTick(()=>{
+
+
+        if(
+            server._showDetails &&
+            detailVersions[id] === version
+        ){
+
+            updateDelayChart(
+                server,
+                true
+            );
+
+        }
+
+
+    });
+
+
+
+};
 
         /*
          * 选择时间范围

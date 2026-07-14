@@ -15,40 +15,13 @@
     <script src="/static/monitor/assets/js/theme-switcher.js"></script>
     
     <style>
-        /* 仅保留首屏渲染前必须内联的开关样式，避免闪烁；
-           其余所有样式统一维护在 base.css */
-        [v-cloak] {
-            display: none !important;
-        }
-        
-        #app {
-            opacity: 0 !important;
-            transition: opacity 0.5s ease !important;
-        }
-        
-        #app.app-ready {
-            opacity: 1 !important;
-        }
-        
-        .grid-header {
-            opacity: 0 !important;
-            visibility: hidden !important;
-            transition: opacity 0.3s ease, visibility 0.3s ease !important;
-        }
-        
-        .app-ready .grid-header {
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-        
-        .main-content {
-            opacity: 0 !important;
-            transition: opacity 0.5s ease !important;
-        }
-        
-        .app-ready .main-content {
-            opacity: 1 !important;
-        }
+        [v-cloak] { display: none !important; }
+        #app { opacity: 0 !important; transition: opacity 0.5s ease !important; }
+        #app.app-ready { opacity: 1 !important; }
+        .grid-header { opacity: 0 !important; visibility: hidden !important; transition: opacity 0.3s ease, visibility 0.3s ease !important; }
+        .app-ready .grid-header { opacity: 1 !important; visibility: visible !important; }
+        .main-content { opacity: 0 !important; transition: opacity 0.5s ease !important; }
+        .app-ready .main-content { opacity: 1 !important; }
     </style>
     
     <link rel="apple-touch-icon" sizes="180x180" href="/static/monitor/assets/img/apple-touch-icon.png">
@@ -59,6 +32,7 @@
 <body class="p-4 md:p-6 min-h-screen flex flex-col">
     <div id="app" v-cloak class="max-w-[1400px] mx-auto flex flex-col flex-grow w-full">
         
+        <!-- 登录遮罩 -->
         <div v-if="siteConfig.view_auth_enabled && !isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="w-full max-w-sm border-custom p-6 sm:p-10 shadow-xl">
                 <div class="mb-8 sm:mb-10 text-center">
@@ -72,9 +46,7 @@
                     <p class="text-[10px] uppercase tracking-widest">安全访问 · 身份验证</p>
                 </div>
                 <div class="space-y-6">
-                    <input type="password" 
-                           v-model="loginKey" 
-                           @keyup.enter="handleLogin" 
+                    <input type="password" v-model="loginKey" @keyup.enter="handleLogin" 
                            placeholder="请输入访问密钥" 
                            class="w-full border-custom p-3 text-sm focus:outline-none text-center font-mono"
                            autocomplete="current-password">
@@ -89,41 +61,31 @@
         <template v-if="!siteConfig.view_auth_enabled || isLoggedIn">
             <div class="flex-grow main-content">
 
-                <!-- ============ 顶部 Header：三段式布局 ============ -->
-                <header class="flex flex-col gap-3 md:gap-2 mb-6 pb-3 border-b-[1px]">
-
-                    <!-- 第一行：Logo + 标题 -->
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="flex-shrink-0">
-                            <img v-if="siteConfig.site_logo" :src="siteConfig.site_logo" class="h-10 w-10 sm:h-12 sm:w-12 object-contain">
-                            <div v-else class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-black border text-xl sm:text-2xl uppercase italic">
-                                {{ (siteConfig.site_name || 'S').charAt(0) }}
+                <!-- ========== 头部：Logo + 标题 + 操作按钮（同一行） ========== -->
+                <header class="flex flex-col gap-2 mb-4 pb-3 border-b-[1px]">
+                    <div class="flex items-center justify-between gap-3 overflow-hidden">
+                        <!-- 左侧：Logo + 站点名称 -->
+                        <div class="flex items-center gap-3 overflow-hidden flex-shrink min-w-0">
+                            <div class="flex-shrink-0">
+                                <img v-if="siteConfig.site_logo" :src="siteConfig.site_logo" class="h-10 w-10 sm:h-12 sm:w-12 object-contain">
+                                <div v-else class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-black border text-xl sm:text-2xl uppercase italic">
+                                    {{ (siteConfig.site_name || 'S').charAt(0) }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex flex-col justify-center leading-none site-title-block overflow-hidden">
-                            <h1 class="site-title text-lg sm:text-2xl font-black tracking-[0.05em] sm:tracking-[0.1em] uppercase mb-1 truncate">{{ siteConfig.site_name }}</h1>
-                            <p class="site-slogan text-[8px] sm:text-[9px] uppercase">{{ siteConfig.site_slogan }}</p>
-                        </div>
-                    </div>
-
-                    <!-- 第二行 + 第三行（桌面端合并为一行）：系统概览统计条 + 操作按钮 -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-
-                        <!-- 系统概览统计条：总上传/总下载/节点总数/连接状态 统一展示，作为整体置于主机列表最上方 -->
-                        <div class="stats-bar grid grid-cols-2 md:flex md:items-center gap-x-4 gap-y-2 md:gap-6 font-mono">
-                            <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">总上传: <span class="ml-1">{{ formatTrafficUnit(totalUploadBytes) }}</span></div>
-                            <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">总下载: <span class="ml-1">{{ formatTrafficUnit(totalDownloadBytes) }}</span></div>
-                            <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">节点总数: <span class="ml-1">{{ servers.length }}</span></div>
-                            <div class="stats-item text-[8px] sm:text-[9px] uppercase tracking-widest">
-                                <div v-html="wsStatus"></div>
+                            <div class="flex flex-col justify-center leading-none site-title-block overflow-hidden">
+                                <h1 class="site-title text-lg sm:text-2xl font-black tracking-[0.05em] sm:tracking-[0.1em] uppercase mb-1 truncate">
+                                    {{ siteConfig.site_name }}
+                                </h1>
+                                <p class="site-slogan text-[8px] sm:text-[9px] uppercase">{{ siteConfig.site_slogan }}</p>
                             </div>
                         </div>
 
-                        <!-- 操作按钮：左对齐自然排列 -->
-                        <div class="flex items-center gap-2 flex-wrap">
+                        <!-- 右侧：操作按钮组 -->
+                        <div class="flex items-center gap-2 flex-wrap flex-shrink-0">
                             <div class="relative" @click.stop>
-                                <button @click="toggleThemeDropdown" class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
-                                    <span>🎨</span><span>主题切换</span>
+                                <button @click="toggleThemeDropdown" 
+                                        class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
+                                    <span>🎨</span><span class="hidden sm:inline">主题切换</span>
                                 </button>
                                 <div v-if="showThemeDropdown" class="theme-dropdown-wrapper">
                                     <div class="theme-dropdown-menu w-full">
@@ -145,17 +107,35 @@
                                 </div>
                             </div>
                             
-                            <button @click="toAdminPanel" class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
-                                <span>⚙️</span><span>管理面板</span>
+                            <button @click="toAdminPanel" 
+                                    class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
+                                <span>⚙️</span><span class="hidden sm:inline">管理面板</span>
                             </button>
-                            <button v-if="hasAdminToken" @click="handleLogout" class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
-                                <span>🔒</span><span>退出登录</span>
+                            <button v-if="hasAdminToken" @click="handleLogout" 
+                                    class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
+                                <span>🔒</span><span class="hidden sm:inline">退出登录</span>
                             </button>
                         </div>
                     </div>
                 </header>
 
-                <!-- 桌面端表头（md 及以上显示） -->
+                <!-- ========== 节点统计概览（占满宽度，均匀分布） ========== -->
+                <div class="stats-bar w-full grid grid-cols-2 md:flex md:justify-around gap-x-4 gap-y-2 font-mono mb-4 p-3 border-custom">
+                    <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center">
+                        总上传: <span class="ml-1">{{ formatTrafficUnit(totalUploadBytes) }}</span>
+                    </div>
+                    <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center">
+                        总下载: <span class="ml-1">{{ formatTrafficUnit(totalDownloadBytes) }}</span>
+                    </div>
+                    <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center">
+                        节点总数: <span class="ml-1">{{ servers.length }}</span>
+                    </div>
+                    <div class="stats-item text-[8px] sm:text-[9px] uppercase tracking-widest text-center">
+                        <div v-html="wsStatus"></div>
+                    </div>
+                </div>
+
+                <!-- 桌面端表头 -->
                 <div class="grid-header hidden md:grid">
                     <div>节点标识 / 操作系统</div>
                     <div v-if="globalSettings.show_cpu" class="text-center">处理器</div>
@@ -169,9 +149,10 @@
                     <div class="text-right">操作</div>
                 </div>
 
+                <!-- 节点列表 -->
                 <div v-for="s in sortedServers" :key="s.id" class="mb-3 md:mb-2">
 
-                    <!-- ============ 桌面端：表格行（md 及以上显示） ============ -->
+                    <!-- 桌面行 -->
                     <div class="grid-row hidden md:grid" :class="{ 'offline-row': !s.online }">
                         <div class="grid-cell flex items-center">
                             <div :class="['status-dot', s.online ? 'bg-green-600 status-pulse' : 'bg-red-600']"></div>
@@ -259,9 +240,8 @@
                         </div>
                     </div>
 
-                    <!-- ============ 手机端：卡片（md 以下显示） ============ -->
+                    <!-- 手机卡片 -->
                     <div class="mobile-card md:hidden p-3" :class="{ 'offline-row': !s.online }">
-                        <!-- 卡片头：节点名 + 状态 + 详情按钮 -->
                         <div class="flex items-center justify-between mb-2 pb-2 divider-soft-bottom">
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <div :class="['status-dot flex-shrink-0', s.online ? 'bg-green-600 status-pulse' : 'bg-red-600']"></div>
@@ -281,7 +261,6 @@
                             </button>
                         </div>
 
-                        <!-- 资源占用：CPU/内存/硬盘同行展示 -->
                         <div v-if="globalSettings.show_cpu || globalSettings.show_mem || globalSettings.show_disk" 
                              class="grid gap-2 mb-2 pb-2 divider-soft-bottom"
                              :class="{
@@ -306,7 +285,6 @@
                             </div>
                         </div>
 
-                        <!-- 其余指标：两列 key-value -->
                         <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[10px]">
                             <div class="flex justify-between items-center">
                                 <span class="opacity-60 text-[9px]">实时带宽</span>
@@ -333,7 +311,7 @@
                         <div v-if="!s.online" class="text-[9px] font-mono mt-2 pt-2 divider-soft-top text-center opacity-70">离线中...</div>
                     </div>
 
-                    <!-- ============ 详情区（桌面/手机共用） ============ -->
+                    <!-- 详情区 -->
                     <div v-if="s._showDetails" class="p-4 md:p-6 border-x border-b space-y-6 md:space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
                         
                         <!-- 容器运行状态 -->
@@ -387,13 +365,10 @@
                                 
                                 <div class="flex items-center gap-2 overflow-x-auto max-w-full w-full sm:w-auto">
                                     <div class="flex border-custom overflow-hidden shrink-0">
-                                        <button 
-                                            v-for="opt in getServerTimeOptions(s)" 
-                                            :key="opt.hours"
-                                            @click.stop="selectTimeRange(s, opt.hours)"
-                                            class="px-2.5 md:px-3 py-1 text-[9px] font-bold uppercase transition-all border-r last:border-r-0 border-[#000] whitespace-nowrap"
-                                            :class="s._selectedTimeRange === opt.hours ? 'bg-black text-white' : 'hover:bg-gray-200'"
-                                        >
+                                        <button v-for="opt in getServerTimeOptions(s)" :key="opt.hours"
+                                                @click.stop="selectTimeRange(s, opt.hours)"
+                                                class="px-2.5 md:px-3 py-1 text-[9px] font-bold uppercase transition-all border-r last:border-r-0 border-[#000] whitespace-nowrap"
+                                                :class="s._selectedTimeRange === opt.hours ? 'bg-black text-white' : 'hover:bg-gray-200'">
                                             {{ opt.label }}
                                         </button>
                                     </div>
@@ -404,7 +379,7 @@
                                 <canvas :id="'chart-' + s.id"></canvas>
                             </div>
 
-                            <!-- 桌面端：表格（md 及以上） -->
+                            <!-- 桌面任务表 -->
                             <div v-if="globalSettings.show_task_list && s.tasks && s.tasks.length > 0" class="hidden md:block overflow-x-auto">
                                 <table class="task-list-outer-border w-full text-[10px] border-collapse min-w-[600px]">
                                     <thead class="font-black uppercase">
@@ -451,7 +426,7 @@
                                 </div>
                             </div>
 
-                            <!-- 手机端：卡片（md 以下） -->
+                            <!-- 手机任务卡片 -->
                             <div v-if="globalSettings.show_task_list && s.tasks && s.tasks.length > 0" class="md:hidden">
                                 <div v-for="(task, idx) in s.tasks" :key="task.id"
                                      class="mobile-task-card"
@@ -485,7 +460,6 @@
                                 </div>
                             </div>
 
-                            <!-- 无任务提示 -->
                             <div v-else-if="globalSettings.show_task_list" class="text-center text-[10px] text-gray-400 py-4">
                                 暂无网络链路检测任务
                             </div>
@@ -509,19 +483,11 @@
                                     <div v-for="n in (s.total_stats_days || 1)" :key="n"
                                          class="heatmap-bar flex-grow h-8 relative group"
                                          :class="(n === 1 && s.online) ? 'bg-green-500' : (n === 1 ? 'bg-red-500' : 'bg-gray-100')">
-                                         
                                         <div class="heatmap-label-center">
-                                            <template v-if="n === 1">
-                                                {{ s.online ? '在线' : '离线' }}
-                                            </template>
-                                            <template v-else>
-                                                无数据
-                                            </template>
+                                            <template v-if="n === 1">{{ s.online ? '在线' : '离线' }}</template>
+                                            <template v-else>无数据</template>
                                         </div>
-
-                                        <div class="heatmap-label-bottom" v-if="n === 1">
-                                            今天
-                                        </div>
+                                        <div class="heatmap-label-bottom" v-if="n === 1">今天</div>
                                     </div>
                                 </template>
                                 <template v-else>
@@ -531,19 +497,17 @@
                                             item.status === 'online' ? 'bg-green-500' : (item.status === 'offline' ? 'bg-red-500' : 'bg-gray-100'),
                                             idx === 0 ? 'ring-1 ring-black shadow-inner' : ''
                                          ]">
-                                         
-                                         <div class="heatmap-label-center">
-                                             <template v-if="!item.status || item.status === 'unknown'">无数据</template>
-                                             <template v-else-if="idx === 0 && item.uptime_rate === 100">在线</template>
-                                             <template v-else-if="item.uptime_rate > 0">{{ item.uptime_rate }}%</template>
-                                         </div>
-
-                                         <div class="heatmap-label-bottom hidden sm:block" v-if="idx % 7 === 0 || idx === 0">
-                                             {{ idx === 0 ? '今天' : item.date.split('-').slice(1).join('/') }}
-                                         </div>
-                                         <div class="heatmap-label-bottom opacity-0 group-hover:opacity-100 hidden sm:block" v-else>
-                                             {{ item.date.split('-').slice(1).join('/') }}
-                                         </div>
+                                        <div class="heatmap-label-center">
+                                            <template v-if="!item.status || item.status === 'unknown'">无数据</template>
+                                            <template v-else-if="idx === 0 && item.uptime_rate === 100">在线</template>
+                                            <template v-else-if="item.uptime_rate > 0">{{ item.uptime_rate }}%</template>
+                                        </div>
+                                        <div class="heatmap-label-bottom hidden sm:block" v-if="idx % 7 === 0 || idx === 0">
+                                            {{ idx === 0 ? '今天' : item.date.split('-').slice(1).join('/') }}
+                                        </div>
+                                        <div class="heatmap-label-bottom opacity-0 group-hover:opacity-100 hidden sm:block" v-else>
+                                            {{ item.date.split('-').slice(1).join('/') }}
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -573,6 +537,7 @@
                 </div>
             </div>
 
+            <!-- Footer -->
             <footer class="w-full mt-12 pb-8 pt-4 border-t flex flex-col sm:flex-row justify-between items-center text-[9px] uppercase tracking-[0.2em] gap-4 main-content">
                 <div class="text-center sm:text-left" v-html="siteConfig.site_footer || '&copy; 2026 SLITE MONITORING SYSTEM'"></div>
                 <div class="flex gap-4 shrink-0 font-bold items-center">

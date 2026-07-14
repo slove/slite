@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
+	"slite/internal/database"
 	"slite/internal/global"
 	"slite/internal/models"
 	"slite/internal/monitor"
@@ -269,25 +271,40 @@ func CheckOffline() {
 }
 
 // StartHistoryWorker 每小时记录一次所有节点的当前在线状态到每日统计表
+// 改为调用 database.SaveNodeUptimeDaily 统一处理，
+// 确保每次写入/更新当日记录后都会同步重新计算并
+// 更新该节点的 total_stats_days（累计统计天数）。
 func StartHistoryWorker() {
 	runHistoryRecord := func() {
-		now := time.Now()
-		todayStr := now.Format("2006-01-02")
+		todayStr := time.Now().Format("2006-01-02")
+
 		global.NodesMu.RLock()
+		// 先拷贝一份节点在线状态快照，避免长时间持锁执行数据库操作
+		snapshot := make(map[string]bool, len(global.Nodes))
 		for id, node := range global.Nodes {
-			var daily models.UptimeDaily
-			status := "online"
-			if !node.Online {
-				status = "offline"
-			}
-			result := global.DB.Where("node_id = ? AND date = ?", id, todayStr).First(&daily)
-			if result.Error != nil {
-				global.DB.Create(&models.UptimeDaily{NodeID: id, Date: todayStr, Status: status, Rate: 100.0})
-			} else {
-				global.DB.Model(&daily).Update("status", status)
-			}
+			snapshot[id] = node.Online
 		}
 		global.NodesMu.RUnlock()
+
+		for id, online := range snapshot {
+			status := "online"
+			rate := 100.0
+			if !online {
+				status = "offline"
+				rate = 0.0
+			}
+
+			record := &models.UptimeDaily{
+				NodeID: id,
+				Date:   todayStr,
+				Status: status,
+				Rate:   rate,
+			}
+
+			if err := database.SaveNodeUptimeDaily(record); err != nil {
+				log.Printf("[History] 更新节点 %s 每日记录失败: %v", id, err)
+			}
+		}
 	}
 	runHistoryRecord()
 	ticker := time.NewTicker(1 * time.Hour)
@@ -334,6 +351,7 @@ func StartWSBroadcast() {
 			displayNode.MonthDown = cfg.MonthDown
 			displayNode.UptimeRate = cfg.UptimeRate
 			displayNode.OfflineTotal = cfg.OfflineTotal
+			displayNode.TotalStatsDays = cfg.TotalStatsDays
 
 			serverList = append(serverList, &displayNode)
 		}

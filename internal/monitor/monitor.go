@@ -26,6 +26,7 @@ import (
 	"gorm.io/gorm"
 
 	"slite/internal/alert"
+	"slite/internal/database"
 	"slite/internal/global"
 	"slite/internal/models"
 	"slite/internal/utils"
@@ -584,40 +585,30 @@ func getNetworkDetectionTasks() []models.Task {
 }
 
 // updateTodayUptimeRecord 更新当日在线状态记录
+// 改为调用 database.SaveNodeUptimeDaily 统一处理，
+// 确保每次写入/更新当日记录后都会同步重新计算并
+// 更新该节点的 total_stats_days（累计统计天数），
+// 避免"统计总天数"一直显示为初始默认值 1 的问题。
 func updateTodayUptimeRecord(nodeID string, isOnline bool) {
 	today := time.Now().Format("2006-01-02")
 
-	var record models.UptimeDaily
-	result := global.DB.Where("node_id = ? AND date = ?", nodeID, today).First(&record)
+	status := "online"
+	rate := 100.0
+	if !isOnline {
+		status = "offline"
+		rate = 0.0
+	}
 
-	if result.Error != nil {
-		status := "online"
-		rate := 100.0
-		if !isOnline {
-			status = "offline"
-			rate = 0.0
-		}
+	record := &models.UptimeDaily{
+		NodeID:          nodeID,
+		Date:            today,
+		Status:          status,
+		Rate:            rate,
+		OfflineDuration: "0s",
+	}
 
-		record = models.UptimeDaily{
-			NodeID:          nodeID,
-			Date:            today,
-			Status:          status,
-			Rate:            rate,
-			OfflineDuration: "0s",
-		}
-		global.DB.Create(&record)
-	} else {
-		status := "online"
-		rate := 100.0
-		if !isOnline {
-			status = "offline"
-			rate = 0.0
-		}
-
-		global.DB.Model(&record).Where("node_id = ? AND date = ?", nodeID, today).Updates(map[string]interface{}{
-			"status": status,
-			"rate":   rate,
-		})
+	if err := database.SaveNodeUptimeDaily(record); err != nil {
+		log.Printf("[Monitor] 更新节点 %s 每日在线记录失败: %v", nodeID, err)
 	}
 }
 
