@@ -120,7 +120,6 @@ createApp({
 
         /*
          * 切换主题函数
-         * 调用全局主题切换函数并更新组件状态
          */
         const switchTheme = (themeName) => {
             if (!themeName || !['default', 'dark'].includes(themeName)) {
@@ -208,7 +207,7 @@ createApp({
 
             try {
                 const response = await fetch(url, { ...options, headers });
-                if (response.status === 401) {
+                if (response && response.status === 401) {
                     localStorage.removeItem('slite_view_token');
                     localStorage.removeItem('slite_monitor_temp_theme');
                     document.cookie = "slite_view_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
@@ -217,7 +216,8 @@ createApp({
                 }
                 return response;
             } catch (err) {
-                throw err;
+                console.warn('authorizedFetch error:', err);
+                return null;
             }
         };
 
@@ -234,7 +234,10 @@ createApp({
          * 初始化WebSocket连接
          */
         const initWebSocket = () => {
-            if (socket) { socket.close(); }
+            if (socket) { 
+                try { socket.close(); } catch(e) {}
+                socket = null;
+            }
 
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/ws/stats`;
@@ -263,6 +266,7 @@ createApp({
                         handleServerData(data);
                     }
                 } catch (e) {
+                    // 忽略解析错误
                 }
             };
 
@@ -280,10 +284,16 @@ createApp({
 
         /*
          * 稳定更新任务数据
-         * 保持任务排序稳定性和历史数据连续性
          */
         const updateTasksStably = (server, newTasks) => {
-            if (!server.tasks || server.tasks.length === 0) {
+            if (!Array.isArray(newTasks)) {
+                newTasks = [];
+            }
+            if (!server.tasks) {
+                server.tasks = [];
+            }
+
+            if (server.tasks.length === 0) {
                 server.tasks = newTasks.map(task => ({
                     ...task,
                     _sortKey: task.id || task.name || Math.random().toString(36).substr(2, 9)
@@ -306,8 +316,10 @@ createApp({
                 });
             });
 
+            // 删除不再存在的任务
             server.tasks = server.tasks.filter(task => newTasksMap.has(task.id));
 
+            // 更新已有任务属性
             server.tasks.forEach(task => {
                 const newTaskData = newTasksMap.get(task.id);
                 if (newTaskData) {
@@ -319,12 +331,14 @@ createApp({
                 }
             });
 
+            // 添加新增任务
             newTasks.forEach(newTask => {
                 if (!existingTasksMap.has(newTask.id)) {
                     server.tasks.push(newTasksMap.get(newTask.id));
                 }
             });
 
+            // 排序
             server.tasks.sort((a, b) => {
                 if (a.sort_index !== undefined && b.sort_index !== undefined) {
                     return a.sort_index - b.sort_index;
@@ -335,7 +349,6 @@ createApp({
 
         /*
          * 处理服务器数据更新
-         * 合并新数据到现有服务器对象中
          */
         const handleServerData = (serverData) => {
             serverData.forEach(newItem => {
@@ -400,7 +413,8 @@ createApp({
                 const finalRenderDays = server.total_stats_days || siteConfig.total_stats_days || 1;
                 server.uptime_heat_map = getFullHeatMap(newItem.uptime_heat_map, newItem.online, finalRenderDays);
 
-                if (newItem.docker?.container_list) {
+                // 处理 Docker
+                if (newItem.docker && newItem.docker.container_list) {
                     const sortedContainers = newItem.docker.container_list
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map(c => ({
@@ -408,8 +422,12 @@ createApp({
                             cpu_usage: c.cpu_usage ? parseFloat(c.cpu_usage).toFixed(1) : '0.0'
                         }));
                     server.docker = { ...newItem.docker, container_list: sortedContainers };
+                } else {
+                    // 如果没有 docker 数据，保留已有或置空
+                    if (!server.docker) server.docker = null;
                 }
 
+                // 处理任务
                 if (newItem.tasks) {
                     const processedTasks = newItem.tasks.map(t => {
                         const cacheKey = `${server.id}-${t.id}`;
@@ -441,41 +459,20 @@ createApp({
                     updateTasksStably(server, processedTasks);
                 }
 
-                if (
-    server._showDetails &&
-    detailVersions[server.id]
-) {
-
-    const version =
-        detailVersions[server.id];
-
-
-    nextTick(()=>{
-
-
-        if(
-            server._showDetails &&
-            detailVersions[server.id] === version
-        ){
-
-            updateDelayChart(
-                server,
-                false,
-                'none'
-            );
-
-        }
-
-
-    });
-
-}
+                // 自动更新图表（如果详情展开且版本一致）
+                if (server._showDetails && detailVersions[server.id]) {
+                    const version = detailVersions[server.id];
+                    nextTick(() => {
+                        if (server._showDetails && detailVersions[server.id] === version) {
+                            updateDelayChart(server, false, 'none');
+                        }
+                    });
+                }
             });
         };
 
         /*
          * 安全的百分比转换
-         * 确保值在0-100范围内
          */
         const safePercent = (val) => {
             const n = parseFloat(val);
@@ -495,13 +492,13 @@ createApp({
                     return data.max_hours || 1;
                 }
             } catch (err) {
+                // ignore
             }
             return 1;
         };
 
         /*
          * 获取可用时间选项
-         * 根据最大小时数生成可用的时间范围选项
          */
         const getAvailableTimeOptions = (maxHours) => {
             const options = [{ hours: 0, label: '最新' }];
@@ -531,12 +528,12 @@ createApp({
                     }
                 }
             } catch (err) {
+                // ignore
             }
         };
 
         /*
          * 初始化应用
-         * 加载配置、检查认证、启动WebSocket
          */
         const initApp = async () => {
             try {
@@ -549,7 +546,7 @@ createApp({
                 showLoadingIndicator();
                 
                 const resPub = await fetch('/api/config/public');
-                if (resPub.ok) {
+                if (resPub && resPub.ok) {
                     const publicData = await resPub.json();
                     Object.assign(siteConfig, publicData);
                 }
@@ -565,6 +562,9 @@ createApp({
                     const settingsData = await resSett.json();
                     Object.assign(globalSettings, settingsData);
                     initWebSocket();
+                } else {
+                    // 即使设置接口失败，也尝试启动 WebSocket（使用默认设置）
+                    initWebSocket();
                 }
                 
                 if (window.getCurrentTheme) {
@@ -575,6 +575,7 @@ createApp({
                 hideLoadingAndShowApp();
                 
             } catch (err) {
+                console.error('Init error:', err);
                 wsStatus.value = '<span class="status-dot-red"></span> 配置连接失败';
                 hideLoadingAndShowApp();
             }
@@ -591,7 +592,7 @@ createApp({
                     body: JSON.stringify({ key: loginKey.value })
                 });
                 
-                if (response.ok) {
+                if (response && response.ok) {
                     const data = await response.json();
                     localStorage.setItem('slite_view_token', data.token);
                     viewToken.value = data.token;
@@ -748,123 +749,49 @@ createApp({
          * 切换服务器详情显示
          */
         const toggleDetails = async (server) => {
-
-    const id = server.id;
-
-
-    if (!detailVersions[id]) {
-        detailVersions[id] = 0;
-    }
-
-
-    const version = ++detailVersions[id];
-
-
-    const opening = !server._showDetails;
-
-
-    // 立即改变状态
-    server._showDetails = opening;
-
-
-
-    /*
-     * 收起
-     */
-    if (!opening) {
-
-
-        server._activeTaskId = null;
-        server._selectedTimeRange = 0;
-
-
-
-        if (charts[id]) {
-
-            try {
-                charts[id].destroy();
-            } catch(e){}
-
-            delete charts[id];
-
-        }
-
-
-        return;
-
-    }
-
-
-
-
-    /*
-     * 展开
-     */
-
-
-    server._activeTaskId = null;
-    server._selectedTimeRange = 0;
-
-
-
-    if(server.tasks && server.tasks.length){
-
-
-        for(const task of server.tasks){
-
-
-            const key =
-                `${id}-${task.id}`;
-
-
-            if(!availableTimeRanges[key]){
-
-                await fetchTaskTimeRange(
-                    id,
-                    task.id
-                );
-
+            const id = server.id;
+            if (!detailVersions[id]) {
+                detailVersions[id] = 0;
             }
+            const version = ++detailVersions[id];
+            const opening = !server._showDetails;
+            server._showDetails = opening;
 
-
-            // 用户期间点击收起
-            if(
-                detailVersions[id] !== version ||
-                !server._showDetails
-            ){
-
+            if (!opening) {
+                server._activeTaskId = null;
+                server._selectedTimeRange = 0;
+                if (charts[id]) {
+                    try {
+                        charts[id].destroy();
+                    } catch(e){}
+                    delete charts[id];
+                }
                 return;
-
             }
 
-        }
+            // 展开
+            server._activeTaskId = null;
+            server._selectedTimeRange = 0;
 
+            if (server.tasks && server.tasks.length) {
+                for (const task of server.tasks) {
+                    const key = `${id}-${task.id}`;
+                    if (!availableTimeRanges[key]) {
+                        await fetchTaskTimeRange(id, task.id);
+                    }
+                    // 如果在此期间用户收起或版本变更，则退出
+                    if (detailVersions[id] !== version || !server._showDetails) {
+                        return;
+                    }
+                }
+            }
 
-    }
-
-
-
-    nextTick(()=>{
-
-
-        if(
-            server._showDetails &&
-            detailVersions[id] === version
-        ){
-
-            updateDelayChart(
-                server,
-                true
-            );
-
-        }
-
-
-    });
-
-
-
-};
+            nextTick(() => {
+                if (server._showDetails && detailVersions[id] === version) {
+                    updateDelayChart(server, true);
+                }
+            });
+        };
 
         /*
          * 选择时间范围
@@ -906,7 +833,13 @@ createApp({
             if (!server._showDetails) return;
             
             const canvas = document.getElementById(`chart-${server.id}`);
-            if (!canvas || !server.tasks || server.tasks.length === 0) return;
+            if (!canvas) return;
+            if (!server.tasks || server.tasks.length === 0) {
+                // 清空画布或显示无数据
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
 
             const selectedHours = server._selectedTimeRange || 0;
             const datasets = server.tasks.map((task, idx) => {
@@ -960,9 +893,12 @@ createApp({
                 const chart = charts[server.id];
                 chart.data.labels = labels;
                 chart.data.datasets = datasets;
-                chart.update(updateMode); 
+                chart.update(updateMode);
             } else {
-                if (charts[server.id]) charts[server.id].destroy();
+                if (charts[server.id]) {
+                    try { charts[server.id].destroy(); } catch(e) {}
+                    delete charts[server.id];
+                }
                 const ctx = canvas.getContext('2d');
                 charts[server.id] = new Chart(ctx, {
                     type: 'line',
@@ -1160,10 +1096,17 @@ createApp({
          * 组件卸载前清理
          */
         onBeforeUnmount(() => {
-            if (socket) socket.close();
-            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (socket) {
+                try { socket.close(); } catch(e) {}
+                socket = null;
+            }
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
             if (themeDropdownClickHandler) {
                 document.removeEventListener('click', themeDropdownClickHandler);
+                themeDropdownClickHandler = null;
             }
             Object.values(charts).forEach(c => {
                 if (c && typeof c.destroy === 'function') c.destroy();

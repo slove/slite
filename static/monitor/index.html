@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://umami.slove.info/slove" data-website-id="308e1c7a-161c-4788-989c-367e7fdf9c2d"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <link rel="stylesheet" href="/static/monitor/assets/css/base.css">
     <link id="theme-style" rel="stylesheet">
@@ -63,7 +64,7 @@
 
                 <!-- ========== 头部：Logo + 标题 + 操作按钮（同一行） ========== -->
                 <header class="flex flex-col gap-2 mb-4 pb-3 border-b-[1px]">
-                    <div class="flex items-center justify-between gap-3 overflow-hidden">
+                    <div class="flex items-center justify-between gap-3">
                         <!-- 左侧：Logo + 站点名称 -->
                         <div class="flex items-center gap-3 overflow-hidden flex-shrink min-w-0">
                             <div class="flex-shrink-0">
@@ -85,7 +86,7 @@
                             <div class="relative" @click.stop>
                                 <button @click="toggleThemeDropdown" 
                                         class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
-                                    <span>🎨</span><span class="hidden sm:inline">主题切换</span>
+                                    <i class="fa-solid fa-palette"></i><span class="hidden sm:inline">主题切换</span>
                                 </button>
                                 <div v-if="showThemeDropdown" class="theme-dropdown-wrapper">
                                     <div class="theme-dropdown-menu w-full">
@@ -94,14 +95,14 @@
                                             <div class="w-3 h-3 rounded-full border border-gray-600 flex items-center justify-center">
                                                 <div class="w-2 h-2 rounded-full" :class="currentTheme === 'default' ? 'bg-green-600' : 'bg-gray-300'"></div>
                                             </div>
-                                            <span>☀️ 亮色</span>
+                                            <span><i class="fa-solid fa-sun mr-1"></i> 亮色</span>
                                         </button>
                                         <button @click.stop="switchTheme('dark')" 
                                                 class="w-full text-[9px] border-none px-3 py-1 font-bold hover:bg-black hover:text-white transition-all text-left flex items-center gap-2 h-8 border-t border-[#000000]">
                                             <div class="w-3 h-3 rounded-full border border-gray-600 flex items-center justify-center">
                                                 <div class="w-2 h-2 rounded-full" :class="currentTheme === 'dark' ? 'bg-green-600' : 'bg-gray-300'"></div>
                                             </div>
-                                            <span>🌙 暗色</span>
+                                            <span><i class="fa-solid fa-moon mr-1"></i> 暗色</span>
                                         </button>
                                     </div>
                                 </div>
@@ -109,18 +110,18 @@
                             
                             <button @click="toAdminPanel" 
                                     class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
-                                <span>⚙️</span><span class="hidden sm:inline">管理面板</span>
+                                <i class="fa-solid fa-gear"></i><span class="hidden sm:inline">管理面板</span>
                             </button>
                             <button v-if="hasAdminToken" @click="handleLogout" 
                                     class="text-[9px] border-custom px-2.5 sm:px-3 py-1.5 md:py-1 font-bold hover:bg-black hover:text-white transition-all inline-flex items-center justify-center gap-1.5 h-8 whitespace-nowrap">
-                                <span>🔒</span><span class="hidden sm:inline">退出登录</span>
+                                <i class="fa-solid fa-lock"></i><span class="hidden sm:inline">退出登录</span>
                             </button>
                         </div>
                     </div>
                 </header>
 
-                <!-- ========== 节点统计概览（占满宽度，均匀分布） ========== -->
-                <div class="stats-bar w-full grid grid-cols-2 md:flex md:justify-around gap-x-4 gap-y-2 font-mono mb-4 p-3 border-custom">
+                <!-- ========== 节点统计概览 ========== -->
+                <div class="stats-bar w-full grid grid-cols-2 md:flex md:justify-around gap-x-4 gap-y-2 font-mono mb-4">
                     <div class="stats-item text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center">
                         总上传: <span class="ml-1">{{ formatTrafficUnit(totalUploadBytes) }}</span>
                     </div>
@@ -351,7 +352,7 @@
                             </div>
 
                             <div v-else class="docker-empty-state">
-                                <span class="icon">🐳</span>
+                                <i class="fa-brands fa-docker icon"></i>
                                 <div class="title">暂无容器信息</div>
                                 <div class="desc">该节点未运行 Docker 容器，或尚未上报容器数据</div>
                             </div>
@@ -478,11 +479,15 @@
                                 </div>
                             </div>
 
-                            <div class="heatmap-wrapper flex gap-[1px] sm:gap-[2px] md:gap-1 items-end h-12 overflow-x-auto">
+                            <!-- 修改点：将 h-12 改为 min-h-12，使容器高度由内容撑开 -->
+                            <div class="heatmap-wrapper flex gap-[1px] sm:gap-[2px] md:gap-1 items-end min-h-12 overflow-x-auto">
                                 <template v-if="!s.uptime_heat_map || s.uptime_heat_map.length === 0">
                                     <div v-for="n in (s.total_stats_days || 1)" :key="n"
-                                         class="heatmap-bar flex-grow h-8 relative group"
-                                         :class="(n === 1 && s.online) ? 'bg-green-500' : (n === 1 ? 'bg-red-500' : 'bg-gray-100')">
+                                         class="heatmap-bar flex-grow h-8 group"
+                                         :class="[
+                                            (n === 1 && s.online) ? 'bg-green-500' : (n === 1 ? 'bg-red-500' : 'bg-gray-100'),
+                                            n === 1 ? 'heatmap-bar-today' : ''
+                                         ]">
                                         <div class="heatmap-label-center">
                                             <template v-if="n === 1">{{ s.online ? '在线' : '离线' }}</template>
                                             <template v-else>无数据</template>
@@ -492,10 +497,10 @@
                                 </template>
                                 <template v-else>
                                     <div v-for="(item, idx) in s.uptime_heat_map" :key="idx"
-                                         class="heatmap-bar flex-grow h-8 relative transition-all group"
+                                         class="heatmap-bar flex-grow h-8 transition-all group"
                                          :class="[
                                             item.status === 'online' ? 'bg-green-500' : (item.status === 'offline' ? 'bg-red-500' : 'bg-gray-100'),
-                                            idx === 0 ? 'ring-1 ring-black shadow-inner' : ''
+                                            idx === 0 ? 'heatmap-bar-today' : ''
                                          ]">
                                         <div class="heatmap-label-center">
                                             <template v-if="!item.status || item.status === 'unknown'">无数据</template>

@@ -48,9 +48,7 @@ body {
 }
 .grid-row.expanded { border-bottom: 1px solid; }
 
-/* --- 标题区：主标题与副标题宽度对齐 ---
- * 副标题使用 text-align-last: justify 自动拉伸到与主标题同宽。
- */
+/* --- 标题区：主标题与副标题宽度对齐 --- */
 .site-title-block {
     min-width: 0;
 }
@@ -68,25 +66,15 @@ body {
     overflow: hidden;
 }
 
-/* --- 系统概览统计条 ---
- * 总上传/总下载/节点总数/连接状态 作为一个整体展示，
- * 紧跟标题、位于主机列表最上方。小屏下用 2x2 网格 + 淡边框
- * 呈现为一个完整的状态面板；桌面端退化为一行内联展示。
- */
+/* --- 系统概览统计条 --- */
 .stats-bar {
-    padding: 8px 10px;
-    border: 1px solid;
+    padding: 4px 0;
     opacity: 0.9;
-}
-@media (min-width: 768px) {
-    .stats-bar {
-        padding: 0;
-        border: none;
-    }
 }
 .stats-item {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
@@ -215,7 +203,6 @@ body {
     font-size: 11px; 
     border: 1px solid; 
     transition: background-color 0.2s; 
-    margin-bottom: 2px; 
 }
 .grid-cell { 
     padding: 8px; 
@@ -400,7 +387,18 @@ body {
     width: 100%; 
 }
 
-/* --- 在线统计与热力图布局 --- */
+/* --- 在线统计与热力图布局 ---
+ * 设计说明：
+ * .heatmap-bar 本身就是 flex 容器（不再依赖任何绝对定位/transform
+ * 去计算文字位置），文字作为普通子元素放入，由父级 flex 属性
+ * 直接完成水平垂直居中——这是最不容易出偏差的居中方式。
+ *
+ * "今天"高亮完全不使用 Tailwind 的 ring / shadow-inner / outline
+ * 等可能与其他样式冲突的工具类，改用 .heatmap-bar-today::before
+ * 一个独立的绝对定位伪元素来画边框。伪元素自成一个图层，不会
+ * 被任何其他 box-shadow / border 声明覆盖或部分遮挡，四条边
+ * 保证同时完整渲染。
+ */
 .uptime-stats-panel { margin-top: 8px; padding-top: 8px; width:100%; }
 .heatmap-wrap { width:100%; display: flex; flex-direction: column; gap: 12px; }
 .heatmap-calendar { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width:100%; }
@@ -467,19 +465,43 @@ body {
     padding-bottom: 25px;
 }
 
-.heatmap-label-center {
+/* 每个方块：真正的 flex 容器，直接居中内部文字，
+   不使用 position/transform 计算 */
+.heatmap-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+}
+.heatmap-bar:hover { z-index: 10; }
+
+/* 今日方块高亮：独立伪元素图层画边框，避免与任何
+   box-shadow / ring 工具类冲突 */
+.heatmap-bar-today::before {
+    content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 7px;
-    font-weight: 900;
-    white-space: nowrap;
-    color: #fff;
+    inset: 0;
+    box-sizing: border-box;
     pointer-events: none;
-    z-index: 5;
 }
 
+/* 方块内的中心文字：作为 heatmap-bar 的普通 flex 子元素，
+   由父级 flex 居中属性直接定位，不再使用 absolute + inset/transform */
+.heatmap-label-center {
+    font-size: 7px;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 5;
+    text-align: center;
+}
+
+/* 方块下方的日期标签：这个仍需要绝对定位，因为它在方块
+   外部（bottom: -18px），与方块内部的居中逻辑无关 */
 .heatmap-label-bottom {
     position: absolute;
     bottom: -18px;
@@ -489,9 +511,6 @@ body {
     font-family: monospace;
     white-space: nowrap;
 }
-
-.heatmap-bar:hover { z-index: 10; }
-.heatmap-bar { display: flex; align-items: center; justify-content: center; }
 
 .chart-container, .task-list-container {
     border: 1px solid !important;
@@ -705,9 +724,7 @@ body {
     opacity: 0.55;
 }
 
-/* --- 统一的"次级分隔线"规则 ---
- * 全站分隔线统一为实线，虚线仅保留给"空状态占位"场景。
- */
+/* --- 统一的"次级分隔线"规则 --- */
 .divider-soft-top {
     border-top: 1px solid;
 }
