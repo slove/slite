@@ -26,22 +26,18 @@ NC='\033[0m'
 # 配置
 # ==============================================================================
 
-# 获取脚本所在目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 
-# PID 文件和日志文件（放在项目根目录）
 PIDFILE="$PROJECT_ROOT/slite.pid"
 LOGFILE="$PROJECT_ROOT/slite.log"
 
 # 运行模式：dev 或 prod
-# dev: go run ./cmd/server
-# prod: 直接运行编译好的二进制文件
 MODE="${MODE:-dev}"
+# 服务监听端口，用于检测残留占用
+PORT="${PORT:-8090}"
 
-# 根据模式设置执行命令
 if [ "$MODE" = "prod" ]; then
-    # 生产模式：运行编译好的二进制文件
     if [ -f "$PROJECT_ROOT/dist/bin/slite-server" ]; then
         EXEC="$PROJECT_ROOT/dist/bin/slite-server"
     elif [ -f "$PROJECT_ROOT/slite-server" ]; then
@@ -52,7 +48,6 @@ if [ "$MODE" = "prod" ]; then
         exit 1
     fi
 else
-    # 开发模式：使用 go run
     EXEC="go run $PROJECT_ROOT/cmd/server/main.go"
 fi
 
@@ -60,23 +55,23 @@ fi
 # 工具函数
 # ==============================================================================
 
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[✓]${NC} $1"; }
+log_error()   { echo -e "${RED}[✗]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[!]${NC} $1"; }
+
+# 查真实占用端口的进程 PID（优先 ss，没有就用 lsof）
+# 注意：这里每个管道末尾都加了 || true —— 查不到进程是正常情况（端口空闲），
+# 在 set -o pipefail 下如果不加这个，空结果会被当成命令失败，
+# 而 port_pid=$(get_port_pid) 这种赋值写法在 set -e 下会导致脚本直接静默退出。
+get_port_pid() {
+    if command -v ss >/dev/null 2>&1; then
+        ss -ltnp 2>/dev/null | awk -v p=":$PORT" '$4 ~ p {print $0}' | grep -oP '(?<=pid=)\d+' | head -1 || true
+    elif command -v lsof >/dev/null 2>&1; then
+        lsof -ti tcp:"$PORT" 2>/dev/null | head -1 || true
+    fi
 }
 
-log_success() {
-    echo -e "${GREEN}[✓]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[✗]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[!]${NC} $1"
-}
-
-# 检查服务是否运行
 is_running() {
     if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
         return 0
@@ -95,19 +90,25 @@ start() {
         return 0
     fi
 
+    # PID 文件说没在跑，不代表端口真的空着——查一下真实占用情况
+    local port_pid
+    port_pid=$(get_port_pid)
+    if [ -n "$port_pid" ]; then
+        log_error "端口 $PORT 已被进程 $port_pid 占用（PID 文件未记录该进程，可能是残留进程）"
+        log_info "运行 '$0 stop' 可自动清理占用端口的残留进程，或手动执行: kill -9 $port_pid"
+        return 1
+    fi
+
     log_info "正在启动服务..."
-    
-    # 确保 PID 文件被清理
     rm -f "$PIDFILE"
-    
-    # 启动服务
+
     cd "$PROJECT_ROOT"
     nohup $EXEC >> "$LOGFILE" 2>&1 &
     local pid=$!
     echo $pid > "$PIDFILE"
-    
+
     sleep 2
-    
+
     if is_running; then
         log_success "服务已启动，PID: $pid，日志: $LOGFILE"
         log_info "运行模式: $MODE"
@@ -119,38 +120,51 @@ start() {
 }
 
 stop() {
-    if ! is_running; then
-        if [ -f "$PIDFILE" ]; then
-            rm -f "$PIDFILE"
+    local acted=false
+
+    if is_running; then
+        local pid
+        pid=$(cat "$PIDFILE")
+        log_info "正在停止服务 (PID: $pid)..."
+
+        # dev 模式下 go run 会 fork 出真正监听端口的子进程，必须一起杀
+        pkill -P "$pid" 2>/dev/null || true
+        kill "$pid" 2>/dev/null || true
+
+        local count=0
+        while kill -0 "$pid" 2>/dev/null && [ $count -lt 10 ]; do
+            sleep 1
+            count=$((count + 1))
+        done
+
+        if kill -0 "$pid" 2>/dev/null; then
+            log_warning "服务未响应，强制终止..."
+            pkill -9 -P "$pid" 2>/dev/null || true
+            kill -9 "$pid" 2>/dev/null || true
+            sleep 1
         fi
-        # 尝试通过进程名终止
-        log_info "尝试通过进程名终止..."
-        pkill -f "slite-server" 2>/dev/null && log_success "已终止" || log_warning "未找到运行中的服务"
-        return 0
+
+        rm -f "$PIDFILE"
+        acted=true
+    else
+        rm -f "$PIDFILE" 2>/dev/null || true
     fi
-    
-    local pid=$(cat "$PIDFILE")
-    log_info "正在停止服务 (PID: $pid)..."
-    
-    # 先尝试优雅停止
-    kill "$pid" 2>/dev/null || true
-    
-    # 等待最多 10 秒
-    local count=0
-    while kill -0 "$pid" 2>/dev/null && [ $count -lt 10 ]; do
+
+    # 不管 PID 文件是否有效，都再核实一次端口是否真的释放了
+    local port_pid
+    port_pid=$(get_port_pid)
+    if [ -n "$port_pid" ]; then
+        log_warning "检测到端口 $PORT 仍被进程 $port_pid 占用，强制终止..."
+        kill -9 "$port_pid" 2>/dev/null || true
         sleep 1
-        count=$((count + 1))
-    done
-    
-    # 如果还在运行，强制终止
-    if kill -0 "$pid" 2>/dev/null; then
-        log_warning "服务未响应，强制终止..."
-        kill -9 "$pid" 2>/dev/null || true
-        sleep 1
+        acted=true
     fi
-    
-    rm -f "$PIDFILE"
-    log_success "服务已停止"
+
+    if [ "$acted" = true ]; then
+        log_success "服务已停止"
+    else
+        log_warning "未找到运行中的服务"
+    fi
 }
 
 restart() {
@@ -171,13 +185,21 @@ logs() {
 
 status() {
     if is_running; then
-        local pid=$(cat "$PIDFILE")
+        local pid
+        pid=$(cat "$PIDFILE")
         log_success "服务运行中，PID: $pid"
         log_info "运行模式: $MODE"
-        # 显示进程信息
         ps -p "$pid" -o pid,ppid,etime,args 2>/dev/null | tail -n +2 || true
     else
-        log_warning "服务未运行"
+        log_warning "服务未运行（PID 文件）"
+    fi
+
+    local port_pid
+    port_pid=$(get_port_pid)
+    if [ -n "$port_pid" ]; then
+        log_info "端口 $PORT 当前被 PID $port_pid 占用"
+    else
+        log_info "端口 $PORT 当前空闲"
     fi
 }
 
@@ -195,6 +217,7 @@ usage() {
     echo "环境变量:"
     echo "  MODE=dev   开发模式 (go run) [默认]"
     echo "  MODE=prod  生产模式 (运行二进制文件)"
+    echo "  PORT=8090  服务监听端口 [默认 8090]"
     echo ""
     echo "示例:"
     echo "  $0                  # 进入交互式菜单"
@@ -211,7 +234,7 @@ show_menu() {
     echo "===================================================="
     echo "              Slite 服务管理菜单"
     echo "===================================================="
-    echo "  运行模式: $MODE"
+    echo "  运行模式: $MODE  |  端口: $PORT"
     echo ""
     echo "  1. 启动服务"
     echo "  2. 停止服务"
@@ -228,7 +251,6 @@ show_menu() {
 # ==============================================================================
 
 main() {
-    # 如果没有参数，默认进入交互式菜单
     if [ $# -eq 0 ]; then
         while true; do
             show_menu
@@ -250,7 +272,6 @@ main() {
         exit 0
     fi
 
-    # 有参数时处理命令
     case "${1:-}" in
         start)
             start
@@ -297,5 +318,4 @@ main() {
     esac
 }
 
-# 执行主函数
 main "$@"

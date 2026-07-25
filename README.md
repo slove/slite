@@ -6,11 +6,11 @@ Slite 是一个使用 Go 语言开发的现代化服务器监控系统，提供�
 
 前端预览
 
-![image](https://cdn.nodeimage.com/i/ZUUUzkjnPjN8M9wJxnh1xZD9ZtdrE57W.webp)
+![image](https://cdn.nodeimage.com/i/em4btHZqUXenZCmcPkDwXGNBWg8tY1V8.webp)
 
 后端预览
 
-![image](https://cdn.nodeimage.com/i/d8nHmlYg6y6nJ0HvQNEh18fOzXJDw6H4.webp)
+![image](https://cdn.nodeimage.com/i/gwVT2lbo9hs4GFjcuOQVbsThCJgilaZY.webp)
 
 ## 主要特性
 
